@@ -79,7 +79,7 @@ func TestReturnStatements(t *testing.T) {
 
 func TestForStatement(t *testing.T) {
 	input := `for (x in y) { 
-		z = z + 1;
+		x;
 	}`
 
 	l := lexer.New(input)
@@ -102,6 +102,46 @@ func TestForStatement(t *testing.T) {
 	}
 
 	if !testIdentifier(t, stmt.Items, "y") {
+		return
+	}
+
+	if len(stmt.Body.Statements) != 1 {
+		t.Errorf("body is not 1 statements. got=%d\n",
+			len(stmt.Body.Statements))
+	}
+
+	body, ok := stmt.Body.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Statements[0] is not ast.ExpressionStatement. got=%T",
+			stmt.Body.Statements[0])
+	}
+
+	if !testIdentifier(t, body.Expression, "x") {
+		return
+	}
+}
+
+func TestWhileStatement(t *testing.T) {
+	input := `while (x < y) { 
+		x;
+	}`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.statements does not contain %d statments. got=%d\n", 1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.WhileStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.WhileStatment. got=%T",
+			program.Statements[0])
+	}
+
+	if !testInfixExpression(t, stmt.Condition, "x", "<", "y") {
 		return
 	}
 

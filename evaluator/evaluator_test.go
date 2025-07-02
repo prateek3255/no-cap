@@ -675,6 +675,70 @@ func TestForStatementWithContinue(t *testing.T) {
 	testIntegerObject(t, result, 8) // 1 + 3 + 4, skip 2
 }
 
+func TestWhileStatement(t *testing.T) {
+	input := `
+		let i = 0;
+		let count = 0;
+ 		while (i < 5) {
+			count = count + i;
+			i = i + 1;
+		}
+		count;
+	`
+
+	evaluated := testEval(input)
+	result, ok := evaluated.(*object.Integer)
+	if !ok {
+		t.Fatalf("Eval didn't return Integer. got=%T (%+v)", evaluated, evaluated)
+	}
+
+	testIntegerObject(t, result, 10)
+}
+
+func TestWhileStatementWithBreak(t *testing.T) {
+	input := `
+		let i = 0;
+		let count = 0;
+ 		while (i < 5) {
+			if (i == 3) { break; }
+			count = count + i;
+			i = i + 1;
+		}
+		count;
+	`
+
+	evaluated := testEval(input)
+	result, ok := evaluated.(*object.Integer)
+	if !ok {
+		t.Fatalf("Eval didn't return Integer. got=%T (%+v)", evaluated, evaluated)
+	}
+
+	testIntegerObject(t, result, 3) // 0 + 1 + 2, break before adding 3
+}
+
+func TestWhileStatementWithContinue(t *testing.T) {
+	input := `
+		let i = 0;
+		let count = 0;
+ 		while (i < 5) {
+			if (i == 2) { 
+				i = i + 1; 
+				continue; 
+			}
+			count = count + i;
+			i = i + 1;
+		}
+		count;
+	`
+	evaluated := testEval(input)
+	result, ok := evaluated.(*object.Integer)
+	if !ok {
+		t.Fatalf("Eval didn't return Integer. got=%T (%+v)", evaluated, evaluated)
+	}
+
+	testIntegerObject(t, result, 8) // 0 + 1 + 3 + 4, skip 2
+}
+
 func TestBreakAndContinueOutsideLoopScenarios(t *testing.T) {
 	tests := []struct {
 		input    string

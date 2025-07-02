@@ -162,6 +162,46 @@ func (bs *BlockStatement) String() string {
 	return out.String()
 }
 
+type ForStatement struct {
+	Token token.Token
+	Items Expression
+	Key   *Identifier
+	Body  *BlockStatement
+}
+
+func (fs *ForStatement) statementNode()       {}
+func (fs *ForStatement) TokenLiteral() string { return fs.Token.Literal }
+func (fs *ForStatement) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("for(")
+	out.WriteString(fs.Key.Value)
+	out.WriteString(" in ")
+	out.WriteString(fs.Items.String() + ") ")
+	out.WriteString(fs.Body.String())
+
+	return out.String()
+}
+
+type WhileStatement struct {
+	Token     token.Token
+	Condition Expression
+	Body      *BlockStatement
+}
+
+func (ws *WhileStatement) statementNode()       {}
+func (ws *WhileStatement) TokenLiteral() string { return ws.Token.Literal }
+func (ws *WhileStatement) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("While(")
+	out.WriteString(ws.Condition.String())
+	out.WriteString(")")
+	out.WriteString(ws.Body.String())
+
+	return out.String()
+}
+
 // Expressions
 type Identifier struct {
 	Token token.Token // the token.IDENT token
@@ -373,27 +413,6 @@ func (hl *HashLiteral) String() string {
 	out.WriteString("{")
 	out.WriteString(strings.Join(pairs, ", "))
 	out.WriteString("}")
-
-	return out.String()
-}
-
-type ForStatement struct {
-	Token token.Token
-	Items Expression
-	Key   *Identifier
-	Body  *BlockStatement
-}
-
-func (fs *ForStatement) statementNode()       {}
-func (fs *ForStatement) TokenLiteral() string { return fs.Token.Literal }
-func (fs *ForStatement) String() string {
-	var out bytes.Buffer
-
-	out.WriteString("for(")
-	out.WriteString(fs.Key.Value)
-	out.WriteString(" in ")
-	out.WriteString(fs.Items.String() + ") ")
-	out.WriteString(fs.Body.String())
 
 	return out.String()
 }

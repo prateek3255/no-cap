@@ -50,6 +50,18 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return obj
 		}
 
+	case *ast.ForStatement:
+		return evalForStatement(node, env)
+
+	case *ast.WhileStatement:
+		return evalWhileStatement(node, env)
+
+	case *ast.BreakStatement:
+		return &object.Break{}
+
+	case *ast.ContinueStatement:
+		return &object.Continue{}
+
 	// Expressions
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
@@ -124,15 +136,6 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 
 	case *ast.HashLiteral:
 		return evalHashLiteral(node, env)
-
-	case *ast.ForStatement:
-		return evalForStatement(node, env)
-
-	case *ast.BreakStatement:
-		return &object.Break{}
-
-	case *ast.ContinueStatement:
-		return &object.Continue{}
 
 	}
 
@@ -481,6 +484,29 @@ func evalForStatement(node *ast.ForStatement, env *object.Environment) object.Ob
 	for _, element := range arr.Elements {
 		extendedEnv := extendForEnv(element, node.Key, env)
 		stmtResult := evalBlockStatement(node.Body, extendedEnv)
+		if stmtResult != nil {
+			switch stmtResult := stmtResult.(type) {
+			case *object.Error:
+				return stmtResult
+			case *object.ReturnValue:
+				return stmtResult
+			case *object.Break:
+				return NULL // break: exit the loop
+			case *object.Continue:
+				continue // continue: skip to next iteration
+			default:
+				result = stmtResult
+			}
+		}
+	}
+
+	return result
+}
+
+func evalWhileStatement(node *ast.WhileStatement, env *object.Environment) object.Object {
+	var result object.Object = NULL
+	for isTruthy(Eval(node.Condition, env)) {
+		stmtResult := evalBlockStatement(node.Body, env)
 		if stmtResult != nil {
 			switch stmtResult := stmtResult.(type) {
 			case *object.Error:
