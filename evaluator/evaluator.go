@@ -128,6 +128,12 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.ForStatement:
 		return evalForStatement(node, env)
 
+	case *ast.BreakStatement:
+		return &object.Break{}
+
+	case *ast.ContinueStatement:
+		return &object.Continue{}
+
 	}
 
 	return nil
@@ -142,6 +148,10 @@ func evalProgram(program *ast.Program, env *object.Environment) object.Object {
 		switch result := result.(type) {
 		case *object.ReturnValue:
 			return result.Value
+		case *object.Break:
+			return newError("break statement cannot be used outside of loop")
+		case *object.Continue:
+			return newError("continue statement cannot be used outside of loop")
 		case *object.Error:
 			return result
 		}
@@ -161,7 +171,7 @@ func evalBlockStatement(
 
 		if result != nil {
 			rt := result.Type()
-			if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ {
+			if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ || rt == object.BREAK_OBJ || rt == object.CONTINUE_OBJ {
 				return result
 			}
 		}
@@ -467,12 +477,27 @@ func evalForStatement(node *ast.ForStatement, env *object.Environment) object.Ob
 
 	arr := items.(*object.Array)
 
+	var result object.Object = NULL
 	for _, element := range arr.Elements {
 		extendedEnv := extendForEnv(element, node.Key, env)
-		evalBlockStatement(node.Body, extendedEnv)
+		stmtResult := evalBlockStatement(node.Body, extendedEnv)
+		if stmtResult != nil {
+			switch stmtResult := stmtResult.(type) {
+			case *object.Error:
+				return stmtResult
+			case *object.ReturnValue:
+				return stmtResult
+			case *object.Break:
+				return NULL // break: exit the loop
+			case *object.Continue:
+				continue // continue: skip to next iteration
+			default:
+				result = stmtResult
+			}
+		}
 	}
 
-	return NULL
+	return result
 }
 
 func extendForEnv(item object.Object, key *ast.Identifier, e *object.Environment) *object.Environment {

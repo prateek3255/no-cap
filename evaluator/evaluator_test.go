@@ -635,6 +635,90 @@ func TestForStatement(t *testing.T) {
 	testIntegerObject(t, result, 10)
 }
 
+func TestForStatementWithBreak(t *testing.T) {
+	input := `
+		let items = [1, 2, 3, 4];
+		let count = 0;
+		for (i in items) {
+			if (i == 3) { break; }
+			count = count + i;
+		}
+		count;
+	`
+
+	evaluated := testEval(input)
+	result, ok := evaluated.(*object.Integer)
+	if !ok {
+		t.Fatalf("Eval didn't return Integer. got=%T (%+v)", evaluated, evaluated)
+	}
+
+	testIntegerObject(t, result, 3) // 1 + 2, break before 3 is added
+}
+
+func TestForStatementWithContinue(t *testing.T) {
+	input := `
+		let items = [1, 2, 3, 4];
+		let count = 0;
+		for (i in items) {
+			if (i == 2) { continue; }
+			count = count + i;
+		}
+		count;
+	`
+
+	evaluated := testEval(input)
+	result, ok := evaluated.(*object.Integer)
+	if !ok {
+		t.Fatalf("Eval didn't return Integer. got=%T (%+v)", evaluated, evaluated)
+	}
+
+	testIntegerObject(t, result, 8) // 1 + 3 + 4, skip 2
+}
+
+func TestBreakAndContinueOutsideLoopScenarios(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			input:    `break;`,
+			expected: "break statement cannot be used outside of loop",
+		},
+		{
+			input:    `continue;`,
+			expected: "continue statement cannot be used outside of loop",
+		},
+		{
+			input:    `if (true) { break; }`,
+			expected: "break statement cannot be used outside of loop",
+		},
+		{
+			input:    `if (true) { continue; }`,
+			expected: "continue statement cannot be used outside of loop",
+		},
+		{
+			input:    `let f = fn() { break; }; f();`,
+			expected: "break statement cannot be used outside of loop",
+		},
+		{
+			input:    `let f = fn() { continue; }; f();`,
+			expected: "continue statement cannot be used outside of loop",
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		err, ok := evaluated.(*object.Error)
+		if !ok {
+			t.Errorf("Eval didn't return Error. got=%T (%+v)", evaluated, evaluated)
+			continue
+		}
+		if err.Message != tt.expected {
+			t.Errorf("wrong error message. expected=%q, got=%q", tt.expected, err.Message)
+		}
+	}
+}
+
 func testEval(input string) object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)

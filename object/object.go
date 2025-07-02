@@ -13,20 +13,18 @@ type BuiltinFunction func(args ...Object) Object
 type ObjectType string
 
 const (
-	NULL_OBJ  = "NULL"
-	ERROR_OBJ = "ERROR"
-
-	INTEGER_OBJ = "INTEGER"
-	BOOLEAN_OBJ = "BOOLEAN"
-	STRING_OBJ  = "STRING"
-
+	NULL_OBJ         = "NULL"
+	ERROR_OBJ        = "ERROR"
+	INTEGER_OBJ      = "INTEGER"
+	BOOLEAN_OBJ      = "BOOLEAN"
+	STRING_OBJ       = "STRING"
 	RETURN_VALUE_OBJ = "RETURN_VALUE"
-
-	FUNCTION_OBJ = "FUNCTION"
-	BUILTIN_OBJ  = "BUILTIN"
-
-	ARRAY_OBJ = "ARRAY"
-	HASH_OBJ  = "HASH"
+	FUNCTION_OBJ     = "FUNCTION"
+	BUILTIN_OBJ      = "BUILTIN"
+	ARRAY_OBJ        = "ARRAY"
+	HASH_OBJ         = "HASH"
+	BREAK_OBJ        = "BREAK"
+	CONTINUE_OBJ     = "CONTINUE"
 )
 
 type HashKey struct {
@@ -180,3 +178,13 @@ func (h *Hash) Inspect() string {
 
 	return out.String()
 }
+
+type Break struct{}
+
+func (b *Break) Type() ObjectType { return BREAK_OBJ }
+func (b *Break) Inspect() string  { return "break" }
+
+type Continue struct{}
+
+func (c *Continue) Type() ObjectType { return CONTINUE_OBJ }
+func (c *Continue) Inspect() string  { return "continue" }
