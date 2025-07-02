@@ -583,6 +583,39 @@ func TestHashIndexExpressions(t *testing.T) {
 	}
 }
 
+func TestAssignmentStatement(t *testing.T) {
+	input := `
+		let count = 0;
+		count = count + 1;
+		count;
+	`
+
+	evaluated := testEval(input)
+	result, ok := evaluated.(*object.Integer)
+	if !ok {
+		t.Fatalf("Eval didn't return Integer. got=%T (%+v)", evaluated, evaluated)
+	}
+
+	testIntegerObject(t, result, 1)
+}
+
+func TestAssigmentError(t *testing.T) {
+	input := `
+		count = count + 1;
+	`
+
+	evaluated := testEval(input)
+	err, ok := evaluated.(*object.Error)
+	if !ok {
+		t.Fatalf("Eval didn't return Error. got=%T (%+v)", evaluated, evaluated)
+	}
+
+	expectedMessage := "identifier not found: count"
+	if err.Message != expectedMessage {
+		t.Fatalf("wrong error message. expected=%q, got=%q", expectedMessage, err.Message)
+	}
+}
+
 func TestForStatement(t *testing.T) {
 	input := `
 		let items = [1, 2, 3, 4];

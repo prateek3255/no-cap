@@ -39,6 +39,17 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 		env.Set(node.Name.Value, val)
 
+	case *ast.AssignmentStatement:
+		val := Eval(node.Value, env)
+		if isError(val) {
+			return val
+		}
+
+		obj := env.Update(node.Name.Value, val)
+		if isError(obj) {
+			return obj
+		}
+
 	// Expressions
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
@@ -457,8 +468,6 @@ func evalForStatement(node *ast.ForStatement, env *object.Environment) object.Ob
 	arr := items.(*object.Array)
 
 	for _, element := range arr.Elements {
-		x, _ := env.Get("count")
-		fmt.Printf("env: %+v\n", x)
 		extendedEnv := extendForEnv(element, node.Key, env)
 		evalBlockStatement(node.Body, extendedEnv)
 	}

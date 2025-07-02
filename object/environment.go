@@ -1,5 +1,7 @@
 package object
 
+import "fmt"
+
 func NewEnclosedEnvironment(outer *Environment) *Environment {
 	env := NewEnvironment()
 	env.outer = outer
@@ -27,4 +29,18 @@ func (e *Environment) Get(name string) (Object, bool) {
 func (e *Environment) Set(name string, val Object) Object {
 	e.store[name] = val
 	return val
+}
+
+func (e *Environment) Update(name string, val Object) Object {
+	_, ok := e.store[name]
+	if ok {
+		e.store[name] = val
+		return val
+	}
+
+	if e.outer != nil {
+		return e.outer.Update(name, val)
+	}
+
+	return &Error{Message: fmt.Sprintf("identifier not found: %q", name)}
 }
