@@ -2,18 +2,31 @@ package main
 
 import (
 	"fmt"
-	"monkey/repl"
-	"os"
-	"os/user"
+	"monkey/evaluator"
+	"monkey/lexer"
+	"monkey/object"
+	"monkey/parser"
 )
 
 func main() {
-	user, err := user.Current()
-	if err != nil {
-		panic(err)
+	input := `1==1;`
+
+	l := lexer.New(input)
+	p := parser.New(l)
+	env := object.NewEnvironment()
+
+	program := p.ParseProgram()
+	if len(p.Errors()) != 0 {
+		for _, msg := range p.Errors() {
+			fmt.Println("Parser error:", msg)
+		}
+		return
 	}
-	fmt.Printf("Hello %s! This is the Monkey programming language!\n",
-		user.Username)
-	fmt.Printf("Feel free to type in commands\n")
-	repl.Start(os.Stdin, os.Stdout)
+
+	evaluated := evaluator.Eval(program, env)
+	if evaluated != nil {
+		fmt.Println("Evaluated result:", evaluated.Inspect())
+	} else {
+		fmt.Println("No evaluation result.")
+	}
 }
