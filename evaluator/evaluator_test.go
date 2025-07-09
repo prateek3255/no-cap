@@ -675,6 +675,48 @@ func TestForStatementWithContinue(t *testing.T) {
 	testIntegerObject(t, result, 8) // 1 + 3 + 4, skip 2
 }
 
+func TestForStatementWithRange(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		// Basic range test
+		{
+			`let count = 0; for (i in range(1, 5)) { count = count + i; } count;`,
+			15, // 1 + 2 + 3 + 4 + 5 = 15
+		},
+		// Single element range
+		{
+			`let sum = 0; for (i in range(5, 5)) { sum = sum + i; } sum;`,
+			5,
+		},
+		// Range starting from 0
+		{
+			`let sum = 0; for (i in range(0, 3)) { sum = sum + i; } sum;`,
+			6, // 0 + 1 + 2 + 3 = 6
+		},
+		// Using range with break
+		{
+			`let sum = 0; for (i in range(1, 10)) { if (i > 3) { break; } sum = sum + i; } sum;`,
+			6, // 1 + 2 + 3 = 6
+		},
+		// Using range with continue
+		{
+			`let sum = 0; for (i in range(1, 5)) { if (i == 3) { continue; } sum = sum + i; } sum;`,
+			12, // 1 + 2 + 4 + 5 = 12
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		result, ok := evaluated.(*object.Integer)
+		if !ok {
+			t.Fatalf("Eval didn't return Integer for input %q. got=%T (%+v)", tt.input, evaluated, evaluated)
+		}
+		testIntegerObject(t, result, tt.expected)
+	}
+}
+
 func TestWhileStatement(t *testing.T) {
 	input := `
 		let i = 0;
@@ -779,6 +821,74 @@ func TestBreakAndContinueOutsideLoopScenarios(t *testing.T) {
 		}
 		if err.Message != tt.expected {
 			t.Errorf("wrong error message. expected=%q, got=%q", tt.expected, err.Message)
+		}
+	}
+}
+
+func TestForStatementWithStringRange(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		// Basic string range - concatenate all characters
+		{
+			`let result = ""; for (char in range("hello")) { result = result + char; } result;`,
+			"hello",
+		},
+		// String range with single character
+		{
+			`let result = ""; for (char in range("a")) { result = result + char; } result;`,
+			"a",
+		},
+		// Empty string range
+		{
+			`let result = ""; for (char in range("")) { result = result + char; } result;`,
+			"",
+		},
+		// String range with special characters
+		{
+			`let result = ""; for (char in range("a!@")) { result = result + char; } result;`,
+			"a!@",
+		},
+		// Count characters in string using range
+		{
+			`let count = 0; for (char in range("test")) { count = count + 1; } count;`,
+			4,
+		},
+		// String range with break
+		{
+			`let result = ""; for (char in range("hello")) { if (char == "l") { break; } result = result + char; } result;`,
+			"he",
+		},
+		// String range with continue
+		{
+			`let result = ""; for (char in range("hello")) { if (char == "l") { continue; } result = result + char; } result;`,
+			"heo",
+		},
+		// Using string range to find specific character
+		{
+			`let found = 0; for (char in range("monkey")) { if (char == "k") { found = 1; break; } } found;`,
+			1,
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		switch expected := tt.expected.(type) {
+		case string:
+			str, ok := evaluated.(*object.String)
+			if !ok {
+				t.Fatalf("Eval didn't return String for input %q. got=%T (%+v)", tt.input, evaluated, evaluated)
+			}
+			if str.Value != expected {
+				t.Errorf("String has wrong value for input %q. got=%q, want=%q", tt.input, str.Value, expected)
+			}
+		case int:
+			result, ok := evaluated.(*object.Integer)
+			if !ok {
+				t.Fatalf("Eval didn't return Integer for input %q. got=%T (%+v)", tt.input, evaluated, evaluated)
+			}
+			testIntegerObject(t, result, int64(expected))
 		}
 	}
 }
