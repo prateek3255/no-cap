@@ -40,25 +40,25 @@ func TestEvalBooleanExpression(t *testing.T) {
 		input    string
 		expected bool
 	}{
-		{"true", true},
-		{"false", false},
+		{"noCap", true},
+		{"cap", false},
 		{"1 < 2", true},
 		{"1 > 2", false},
 		{"1 < 1", false},
 		{"1 > 1", false},
-		{"1 == 1", true},
-		{"1 != 1", false},
-		{"1 == 2", false},
-		{"1 != 2", true},
-		{"true == true", true},
-		{"false == false", true},
-		{"true == false", false},
-		{"true != false", true},
-		{"false != true", true},
-		{"(1 < 2) == true", true},
-		{"(1 < 2) == false", false},
-		{"(1 > 2) == true", false},
-		{"(1 > 2) == false", true},
+		{"1 is 1", true},
+		{"1 aint 1", false},
+		{"1 is 2", false},
+		{"1 aint 2", true},
+		{"noCap is noCap", true},
+		{"cap is cap", true},
+		{"noCap is cap", false},
+		{"noCap aint cap", true},
+		{"cap aint noCap", true},
+		{"(1 < 2) is noCap", true},
+		{"(1 < 2) is cap", false},
+		{"(1 > 2) is noCap", false},
+		{"(1 > 2) is cap", true},
 	}
 
 	for _, tt := range tests {
@@ -72,12 +72,12 @@ func TestBangOperator(t *testing.T) {
 		input    string
 		expected bool
 	}{
-		{"!true", false},
-		{"!false", true},
-		{"!5", false},
-		{"!!true", true},
-		{"!!false", false},
-		{"!!5", true},
+		{"nah noCap", false},
+		{"nah cap", true},
+		{"nah 5", false},
+		{"nah nah noCap", true},
+		{"nah nah cap", false},
+		{"nah nah 5", true},
 	}
 
 	for _, tt := range tests {
@@ -91,13 +91,13 @@ func TestIfElseExpressions(t *testing.T) {
 		input    string
 		expected interface{}
 	}{
-		{"if (true) { 10 }", 10},
-		{"if (false) { 10 }", nil},
-		{"if (1) { 10 }", 10},
-		{"if (1 < 2) { 10 }", 10},
-		{"if (1 > 2) { 10 }", nil},
-		{"if (1 > 2) { 10 } else { 20 }", 20},
-		{"if (1 < 2) { 10 } else { 20 }", 10},
+		{"vibe (noCap) { 10 }", 10},
+		{"vibe (cap) { 10 }", nil},
+		{"vibe (1) { 10 }", 10},
+		{"vibe (1 < 2) { 10 }", 10},
+		{"vibe (1 > 2) { 10 }", nil},
+		{"vibe (1 > 2) { 10 } nvm { 20 }", 20},
+		{"vibe (1 < 2) { 10 } nvm { 20 }", 10},
 	}
 
 	for _, tt := range tests {
@@ -116,27 +116,27 @@ func TestReturnStatements(t *testing.T) {
 		input    string
 		expected int64
 	}{
-		{"return 10;", 10},
-		{"return 10; 9;", 10},
-		{"return 2 * 5; 9;", 10},
-		{"9; return 2 * 5; 9;", 10},
-		{"if (10 > 1) { return 10; }", 10},
+		{"yeet 10;", 10},
+		{"yeet 10; 9;", 10},
+		{"yeet 2 * 5; 9;", 10},
+		{"9; yeet 2 * 5; 9;", 10},
+		{"vibe (10 > 1) { yeet 10; }", 10},
 		{
 			`
-if (10 > 1) {
-  if (10 > 1) {
-    return 10;
+vibe (10 > 1) {
+  vibe (10 > 1) {
+    yeet 10;
   }
 
-  return 1;
+  yeet 1;
 }
 `,
 			10,
 		},
 		{
 			`
-let f = fn(x) {
-  return x;
+fr f = cook(x) {
+  yeet x;
   x + 10;
 };
 f(10);`,
@@ -144,10 +144,10 @@ f(10);`,
 		},
 		{
 			`
-let f = fn(x) {
-   let result = x + 10;
-   return result;
-   return 10;
+fr f = cook(x) {
+   fr result = x + 10;
+   yeet result;
+   yeet 10;
 };
 f(10);`,
 			20,
@@ -166,27 +166,27 @@ func TestErrorHandling(t *testing.T) {
 		expectedMessage string
 	}{
 		{
-			"5 + true;",
+			"5 + noCap;",
 			"type mismatch: INTEGER + BOOLEAN",
 		},
 		{
-			"5 + true; 5;",
+			"5 + noCap; 5;",
 			"type mismatch: INTEGER + BOOLEAN",
 		},
 		{
-			"-true",
+			"-noCap",
 			"unknown operator: -BOOLEAN",
 		},
 		{
-			"true + false;",
+			"noCap + cap;",
 			"unknown operator: BOOLEAN + BOOLEAN",
 		},
 		{
-			"true + false + true + false;",
+			"noCap + cap + noCap + cap;",
 			"unknown operator: BOOLEAN + BOOLEAN",
 		},
 		{
-			"5; true + false; 5",
+			"5; noCap + cap; 5",
 			"unknown operator: BOOLEAN + BOOLEAN",
 		},
 		{
@@ -194,17 +194,17 @@ func TestErrorHandling(t *testing.T) {
 			"unknown operator: STRING - STRING",
 		},
 		{
-			"if (10 > 1) { true + false; }",
+			"vibe (10 > 1) { noCap + cap; }",
 			"unknown operator: BOOLEAN + BOOLEAN",
 		},
 		{
 			`
-if (10 > 1) {
-  if (10 > 1) {
-    return true + false;
+vibe (10 > 1) {
+  vibe (10 > 1) {
+    yeet noCap + cap;
   }
 
-  return 1;
+  yeet 1;
 }
 `,
 			"unknown operator: BOOLEAN + BOOLEAN",
@@ -214,7 +214,7 @@ if (10 > 1) {
 			"identifier not found: foobar",
 		},
 		{
-			`{"name": "Monkey"}[fn(x) { x }];`,
+			`{"name": "Monkey"}[cook(x) { x }];`,
 			"unusable as hash key: FUNCTION",
 		},
 		{
@@ -245,10 +245,10 @@ func TestLetStatements(t *testing.T) {
 		input    string
 		expected int64
 	}{
-		{"let a = 5; a;", 5},
-		{"let a = 5 * 5; a;", 25},
-		{"let a = 5; let b = a; b;", 5},
-		{"let a = 5; let b = a; let c = a + b + 5; c;", 15},
+		{"fr a = 5; a;", 5},
+		{"fr a = 5 * 5; a;", 25},
+		{"fr a = 5; fr b = a; b;", 5},
+		{"fr a = 5; fr b = a; fr c = a + b + 5; c;", 15},
 	}
 
 	for _, tt := range tests {
@@ -257,7 +257,7 @@ func TestLetStatements(t *testing.T) {
 }
 
 func TestFunctionObject(t *testing.T) {
-	input := "fn(x) { x + 2; };"
+	input := "cook(x) { x + 2; };"
 
 	evaluated := testEval(input)
 	fn, ok := evaluated.(*object.Function)
@@ -286,12 +286,12 @@ func TestFunctionApplication(t *testing.T) {
 		input    string
 		expected int64
 	}{
-		{"let identity = fn(x) { x; }; identity(5);", 5},
-		{"let identity = fn(x) { return x; }; identity(5);", 5},
-		{"let double = fn(x) { x * 2; }; double(5);", 10},
-		{"let add = fn(x, y) { x + y; }; add(5, 5);", 10},
-		{"let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
-		{"fn(x) { x; }(5)", 5},
+		{"fr identity = cook(x) { x; }; identity(5);", 5},
+		{"fr identity = cook(x) { yeet x; }; identity(5);", 5},
+		{"fr double = cook(x) { x * 2; }; double(5);", 10},
+		{"fr add = cook(x, y) { x + y; }; add(5, 5);", 10},
+		{"fr add = cook(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
+		{"cook(x) { x; }(5)", 5},
 	}
 
 	for _, tt := range tests {
@@ -301,12 +301,12 @@ func TestFunctionApplication(t *testing.T) {
 
 func TestEnclosingEnvironments(t *testing.T) {
 	input := `
-let first = 10;
-let second = 10;
-let third = 10;
+fr first = 10;
+fr second = 10;
+fr third = 10;
 
-let ourFunction = fn(first) {
-  let second = 20;
+fr ourFunction = cook(first) {
+  fr second = 20;
 
   first + second + third;
 };
@@ -318,11 +318,11 @@ ourFunction(20) + first + second;`
 
 func TestClosures(t *testing.T) {
 	input := `
-let newAdder = fn(x) {
-  fn(y) { x + y };
+fr newAdder = cook(x) {
+  cook(y) { x + y };
 };
 
-let addTwo = newAdder(2);
+fr addTwo = newAdder(2);
 addTwo(2);`
 
 	testIntegerObject(t, testEval(input), 4)
@@ -457,7 +457,7 @@ func TestArrayIndexExpressions(t *testing.T) {
 			3,
 		},
 		{
-			"let i = 0; [1][i];",
+			"fr i = 0; [1][i];",
 			1,
 		},
 		{
@@ -465,15 +465,15 @@ func TestArrayIndexExpressions(t *testing.T) {
 			3,
 		},
 		{
-			"let myArray = [1, 2, 3]; myArray[2];",
+			"fr myArray = [1, 2, 3]; myArray[2];",
 			3,
 		},
 		{
-			"let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];",
+			"fr myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];",
 			6,
 		},
 		{
-			"let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]",
+			"fr myArray = [1, 2, 3]; fr i = myArray[0]; myArray[i]",
 			2,
 		},
 		{
@@ -498,14 +498,14 @@ func TestArrayIndexExpressions(t *testing.T) {
 }
 
 func TestHashLiterals(t *testing.T) {
-	input := `let two = "two";
+	input := `fr two = "two";
 	{
 		"one": 10 - 9,
 		two: 1 + 1,
 		"thr" + "ee": 6 / 2,
 		4: 4,
-		true: 5,
-		false: 6
+		noCap: 5,
+		cap: 6
 	}`
 
 	evaluated := testEval(input)
@@ -551,7 +551,7 @@ func TestHashIndexExpressions(t *testing.T) {
 			nil,
 		},
 		{
-			`let key = "foo"; {"foo": 5}[key]`,
+			`fr key = "foo"; {"foo": 5}[key]`,
 			5,
 		},
 		{
@@ -563,11 +563,11 @@ func TestHashIndexExpressions(t *testing.T) {
 			5,
 		},
 		{
-			`{true: 5}[true]`,
+			`{noCap: 5}[noCap]`,
 			5,
 		},
 		{
-			`{false: 5}[false]`,
+			`{cap: 5}[cap]`,
 			5,
 		},
 	}
@@ -585,7 +585,7 @@ func TestHashIndexExpressions(t *testing.T) {
 
 func TestAssignmentStatement(t *testing.T) {
 	input := `
-		let count = 0;
+		fr count = 0;
 		count = count + 1;
 		count;
 	`
@@ -618,9 +618,9 @@ func TestAssigmentError(t *testing.T) {
 
 func TestForStatement(t *testing.T) {
 	input := `
-		let items = [1, 2, 3, 4];
-		let count = 0;
-		for (i in items) {
+		fr items = [1, 2, 3, 4];
+		fr count = 0;
+		stalk (i in items) {
 			count = count + i;
 		}
 		count;
@@ -637,10 +637,10 @@ func TestForStatement(t *testing.T) {
 
 func TestForStatementWithBreak(t *testing.T) {
 	input := `
-		let items = [1, 2, 3, 4];
-		let count = 0;
-		for (i in items) {
-			if (i == 3) { break; }
+		fr items = [1, 2, 3, 4];
+		fr count = 0;
+		stalk (i in items) {
+			vibe (i is 3) { bounce; }
 			count = count + i;
 		}
 		count;
@@ -657,10 +657,10 @@ func TestForStatementWithBreak(t *testing.T) {
 
 func TestForStatementWithContinue(t *testing.T) {
 	input := `
-		let items = [1, 2, 3, 4];
-		let count = 0;
-		for (i in items) {
-			if (i == 2) { continue; }
+		fr items = [1, 2, 3, 4];
+		fr count = 0;
+		stalk (i in items) {
+			vibe (i is 2) { pass; }
 			count = count + i;
 		}
 		count;
@@ -682,27 +682,27 @@ func TestForStatementWithRange(t *testing.T) {
 	}{
 		// Basic range test
 		{
-			`let count = 0; for (i in range(1, 5)) { count = count + i; } count;`,
+			`fr count = 0; stalk (i in range(1, 5)) { count = count + i; } count;`,
 			15, // 1 + 2 + 3 + 4 + 5 = 15
 		},
 		// Single element range
 		{
-			`let sum = 0; for (i in range(5, 5)) { sum = sum + i; } sum;`,
+			`fr sum = 0; stalk (i in range(5, 5)) { sum = sum + i; } sum;`,
 			5,
 		},
 		// Range starting from 0
 		{
-			`let sum = 0; for (i in range(0, 3)) { sum = sum + i; } sum;`,
+			`fr sum = 0; stalk (i in range(0, 3)) { sum = sum + i; } sum;`,
 			6, // 0 + 1 + 2 + 3 = 6
 		},
 		// Using range with break
 		{
-			`let sum = 0; for (i in range(1, 10)) { if (i > 3) { break; } sum = sum + i; } sum;`,
+			`fr sum = 0; stalk (i in range(1, 10)) { vibe (i > 3) { bounce; } sum = sum + i; } sum;`,
 			6, // 1 + 2 + 3 = 6
 		},
 		// Using range with continue
 		{
-			`let sum = 0; for (i in range(1, 5)) { if (i == 3) { continue; } sum = sum + i; } sum;`,
+			`fr sum = 0; stalk (i in range(1, 5)) { vibe (i is 3) { pass; } sum = sum + i; } sum;`,
 			12, // 1 + 2 + 4 + 5 = 12
 		},
 	}
@@ -719,9 +719,9 @@ func TestForStatementWithRange(t *testing.T) {
 
 func TestWhileStatement(t *testing.T) {
 	input := `
-		let i = 0;
-		let count = 0;
- 		while (i < 5) {
+		fr i = 0;
+		fr count = 0;
+ 		onRepeat (i < 5) {
 			count = count + i;
 			i = i + 1;
 		}
@@ -739,10 +739,10 @@ func TestWhileStatement(t *testing.T) {
 
 func TestWhileStatementWithBreak(t *testing.T) {
 	input := `
-		let i = 0;
-		let count = 0;
- 		while (i < 5) {
-			if (i == 3) { break; }
+		fr i = 0;
+		fr count = 0;
+ 		onRepeat (i < 5) {
+			vibe (i is 3) { bounce; }
 			count = count + i;
 			i = i + 1;
 		}
@@ -760,12 +760,12 @@ func TestWhileStatementWithBreak(t *testing.T) {
 
 func TestWhileStatementWithContinue(t *testing.T) {
 	input := `
-		let i = 0;
-		let count = 0;
- 		while (i < 5) {
-			if (i == 2) { 
+		fr i = 0;
+		fr count = 0;
+ 		onRepeat (i < 5) {
+			vibe (i is 2) { 
 				i = i + 1; 
-				continue; 
+				pass; 
 			}
 			count = count + i;
 			i = i + 1;
@@ -787,27 +787,27 @@ func TestBreakAndContinueOutsideLoopScenarios(t *testing.T) {
 		expected string
 	}{
 		{
-			input:    `break;`,
+			input:    `bounce;`,
 			expected: "break statement cannot be used outside of loop",
 		},
 		{
-			input:    `continue;`,
+			input:    `pass;`,
 			expected: "continue statement cannot be used outside of loop",
 		},
 		{
-			input:    `if (true) { break; }`,
+			input:    `vibe (noCap) { bounce; }`,
 			expected: "break statement cannot be used outside of loop",
 		},
 		{
-			input:    `if (true) { continue; }`,
+			input:    `vibe (noCap) { pass; }`,
 			expected: "continue statement cannot be used outside of loop",
 		},
 		{
-			input:    `let f = fn() { break; }; f();`,
+			input:    `fr f = cook() { bounce; }; f();`,
 			expected: "break statement cannot be used outside of loop",
 		},
 		{
-			input:    `let f = fn() { continue; }; f();`,
+			input:    `fr f = cook() { pass; }; f();`,
 			expected: "continue statement cannot be used outside of loop",
 		},
 	}
@@ -832,42 +832,42 @@ func TestForStatementWithStringRange(t *testing.T) {
 	}{
 		// Basic string range - concatenate all characters
 		{
-			`let result = ""; for (char in range("hello")) { result = result + char; } result;`,
+			`fr result = ""; stalk (char in range("hello")) { result = result + char; } result;`,
 			"hello",
 		},
 		// String range with single character
 		{
-			`let result = ""; for (char in range("a")) { result = result + char; } result;`,
+			`fr result = ""; stalk (char in range("a")) { result = result + char; } result;`,
 			"a",
 		},
 		// Empty string range
 		{
-			`let result = ""; for (char in range("")) { result = result + char; } result;`,
+			`fr result = ""; stalk (char in range("")) { result = result + char; } result;`,
 			"",
 		},
 		// String range with special characters
 		{
-			`let result = ""; for (char in range("a!@")) { result = result + char; } result;`,
+			`fr result = ""; stalk (char in range("a!@")) { result = result + char; } result;`,
 			"a!@",
 		},
 		// Count characters in string using range
 		{
-			`let count = 0; for (char in range("test")) { count = count + 1; } count;`,
+			`fr count = 0; stalk (char in range("test")) { count = count + 1; } count;`,
 			4,
 		},
 		// String range with break
 		{
-			`let result = ""; for (char in range("hello")) { if (char == "l") { break; } result = result + char; } result;`,
+			`fr result = ""; stalk (char in range("hello")) { vibe (char is "l") { bounce; } result = result + char; } result;`,
 			"he",
 		},
 		// String range with continue
 		{
-			`let result = ""; for (char in range("hello")) { if (char == "l") { continue; } result = result + char; } result;`,
+			`fr result = ""; stalk (char in range("hello")) { vibe (char is "l") { pass; } result = result + char; } result;`,
 			"heo",
 		},
 		// Using string range to find specific character
 		{
-			`let found = 0; for (char in range("monkey")) { if (char == "k") { found = 1; break; } } found;`,
+			`fr found = 0; stalk (char in range("monkey")) { vibe (char is "k") { found = 1; bounce; } } found;`,
 			1,
 		},
 	}

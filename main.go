@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"monkey/evaluator"
 	"monkey/lexer"
 	"monkey/object"
@@ -36,7 +35,7 @@ func ExecuteNoCap() js.Func {
 
 		evaluated := evaluator.Eval(program, env)
 		if evaluated != nil {
-			return fmt.Sprintf("Evaluated result: %s", evaluated.Inspect())
+			return evaluated.Inspect()
 		} else {
 			return "Evaluation returned nil."
 		}

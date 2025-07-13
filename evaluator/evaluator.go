@@ -192,7 +192,7 @@ func nativeBoolToBooleanObject(input bool) *object.Boolean {
 
 func evalPrefixExpression(operator string, right object.Object) object.Object {
 	switch operator {
-	case "!":
+	case "nah":
 		return evalBangOperatorExpression(right)
 	case "-":
 		return evalMinusPrefixOperatorExpression(right)
@@ -210,9 +210,9 @@ func evalInfixExpression(
 		return evalIntegerInfixExpression(operator, left, right)
 	case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
 		return evalStringInfixExpression(operator, left, right)
-	case operator == "==":
+	case operator == "is":
 		return nativeBoolToBooleanObject(left == right)
-	case operator == "!=":
+	case operator == "aint":
 		return nativeBoolToBooleanObject(left != right)
 	case left.Type() != right.Type():
 		return newError("type mismatch: %s %s %s",
@@ -265,9 +265,9 @@ func evalIntegerInfixExpression(
 		return nativeBoolToBooleanObject(leftVal < rightVal)
 	case ">":
 		return nativeBoolToBooleanObject(leftVal > rightVal)
-	case "==":
+	case "is":
 		return nativeBoolToBooleanObject(leftVal == rightVal)
-	case "!=":
+	case "aint":
 		return nativeBoolToBooleanObject(leftVal != rightVal)
 	default:
 		return newError("unknown operator: %s %s %s",
@@ -285,9 +285,9 @@ func evalStringInfixExpression(
 	switch operator {
 	case "+":
 		return &object.String{Value: leftVal + rightVal}
-	case "==":
+	case "is":
 		return nativeBoolToBooleanObject(leftVal == rightVal)
-	case "!=":
+	case "aint":
 		return nativeBoolToBooleanObject(leftVal != rightVal)
 	default:
 		return newError("unknown operator: %s %s %s",
@@ -325,7 +325,7 @@ func evalIdentifier(
 		return builtin
 	}
 
-	return newError("identifier not found: " + node.Value)
+	return newError("identifier not found: %s", node.Value)
 }
 
 func isTruthy(obj object.Object) bool {

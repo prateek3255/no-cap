@@ -15,15 +15,11 @@ const (
 	ASSIGN   = "="
 	PLUS     = "+"
 	MINUS    = "-"
-	BANG     = "!"
 	ASTERISK = "*"
 	SLASH    = "/"
 
 	LT = "<"
 	GT = ">"
-
-	EQ     = "=="
-	NOT_EQ = "!="
 
 	// Delimiters
 	COMMA     = ","
@@ -38,6 +34,9 @@ const (
 	RBRACKET = "]"
 
 	// Keywords
+	EQ       = "EQ"
+	NOT_EQ   = "NOT_EQ"
+	BANG     = "BANG"
 	FUNCTION = "FUNCTION"
 	LET      = "LET"
 	TRUE     = "TRUE"
@@ -58,18 +57,21 @@ type Token struct {
 }
 
 var keywords = map[string]TokenType{
-	"fn":       FUNCTION,
-	"let":      LET,
-	"true":     TRUE,
-	"false":    FALSE,
-	"if":       IF,
-	"else":     ELSE,
-	"return":   RETURN,
-	"for":      FOR,
-	"while":    WHILE,
+	"cook":     FUNCTION,
+	"fr":       LET,
+	"cap":      FALSE,
+	"noCap":    TRUE,
+	"vibe":     IF,
+	"nvm":      ELSE,
+	"yeet":     RETURN,
+	"stalk":    FOR,
+	"onRepeat": WHILE,
 	"in":       IN,
-	"continue": CONTINUE,
-	"break":    BREAK,
+	"pass":     CONTINUE,
+	"bounce":   BREAK,
+	"is":       EQ,
+	"aint":     NOT_EQ,
+	"nah":      BANG,
 }
 
 func LookupIdent(ident string) TokenType {

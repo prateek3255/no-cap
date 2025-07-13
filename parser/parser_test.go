@@ -13,9 +13,9 @@ func TestLetStatements(t *testing.T) {
 		expectedIdentifier string
 		expectedValue      interface{}
 	}{
-		{"let x = 5;", "x", 5},
-		{"let y = true;", "y", true},
-		{"let foobar = y;", "foobar", "y"},
+		{"fr x = 5;", "x", 5},
+		{"fr y = noCap;", "y", true},
+		{"fr foobar = y;", "foobar", "y"},
 	}
 
 	for _, tt := range tests {
@@ -46,9 +46,9 @@ func TestReturnStatements(t *testing.T) {
 		input         string
 		expectedValue interface{}
 	}{
-		{"return 5;", 5},
-		{"return true;", true},
-		{"return foobar;", "foobar"},
+		{"yeet 5;", 5},
+		{"yeet noCap;", true},
+		{"yeet foobar;", "foobar"},
 	}
 
 	for _, tt := range tests {
@@ -67,8 +67,8 @@ func TestReturnStatements(t *testing.T) {
 		if !ok {
 			t.Fatalf("stmt not *ast.ReturnStatement. got=%T", stmt)
 		}
-		if returnStmt.TokenLiteral() != "return" {
-			t.Fatalf("returnStmt.TokenLiteral not 'return', got %q",
+		if returnStmt.TokenLiteral() != "yeet" {
+			t.Fatalf("returnStmt.TokenLiteral not 'yeet', got %q",
 				returnStmt.TokenLiteral())
 		}
 		if testLiteralExpression(t, returnStmt.ReturnValue, tt.expectedValue) {
@@ -78,7 +78,7 @@ func TestReturnStatements(t *testing.T) {
 }
 
 func TestForStatement(t *testing.T) {
-	input := `for (x in y) { 
+	input := `stalk (x in y) { 
 		x;
 	}`
 
@@ -122,7 +122,7 @@ func TestForStatement(t *testing.T) {
 }
 
 func TestWhileStatement(t *testing.T) {
-	input := `while (x < y) { 
+	input := `onRepeat (x < y) { 
 		x;
 	}`
 
@@ -162,7 +162,7 @@ func TestWhileStatement(t *testing.T) {
 }
 
 func TestContinueStatement(t *testing.T) {
-	input := "continue;"
+	input := "pass;"
 
 	l := lexer.New(input)
 	p := New(l)
@@ -177,13 +177,13 @@ func TestContinueStatement(t *testing.T) {
 	if !ok {
 		t.Fatalf("stmt not *ast.ContinueStatement. got=%T", program.Statements[0])
 	}
-	if stmt.TokenLiteral() != "continue" {
-		t.Errorf("stmt.TokenLiteral not 'continue'. got=%q", stmt.TokenLiteral())
+	if stmt.TokenLiteral() != "pass" {
+		t.Errorf("stmt.TokenLiteral not 'pass'. got=%q", stmt.TokenLiteral())
 	}
 }
 
 func TestBreakStatement(t *testing.T) {
-	input := "break;"
+	input := "bounce;"
 
 	l := lexer.New(input)
 	p := New(l)
@@ -198,8 +198,8 @@ func TestBreakStatement(t *testing.T) {
 	if !ok {
 		t.Fatalf("stmt not *ast.BreakStatement. got=%T", program.Statements[0])
 	}
-	if stmt.TokenLiteral() != "break" {
-		t.Errorf("stmt.TokenLiteral not 'break'. got=%q", stmt.TokenLiteral())
+	if stmt.TokenLiteral() != "bounce" {
+		t.Errorf("stmt.TokenLiteral not 'bounce'. got=%q", stmt.TokenLiteral())
 	}
 }
 
@@ -297,12 +297,12 @@ func TestParsingPrefixExpressions(t *testing.T) {
 		operator string
 		value    interface{}
 	}{
-		{"!5;", "!", 5},
+		{"nah 5;", "nah", 5},
 		{"-15;", "-", 15},
-		{"!foobar;", "!", "foobar"},
+		{"nah foobar;", "nah", "foobar"},
 		{"-foobar;", "-", "foobar"},
-		{"!true;", "!", true},
-		{"!false;", "!", false},
+		{"nah noCap;", "nah", true},
+		{"nah cap;", "nah", false},
 	}
 
 	for _, tt := range prefixTests {
@@ -349,19 +349,19 @@ func TestParsingInfixExpressions(t *testing.T) {
 		{"5 / 5;", 5, "/", 5},
 		{"5 > 5;", 5, ">", 5},
 		{"5 < 5;", 5, "<", 5},
-		{"5 == 5;", 5, "==", 5},
-		{"5 != 5;", 5, "!=", 5},
+		{"5 is 5;", 5, "is", 5},
+		{"5 aint 5;", 5, "aint", 5},
 		{"foobar + barfoo;", "foobar", "+", "barfoo"},
 		{"foobar - barfoo;", "foobar", "-", "barfoo"},
 		{"foobar * barfoo;", "foobar", "*", "barfoo"},
 		{"foobar / barfoo;", "foobar", "/", "barfoo"},
 		{"foobar > barfoo;", "foobar", ">", "barfoo"},
 		{"foobar < barfoo;", "foobar", "<", "barfoo"},
-		{"foobar == barfoo;", "foobar", "==", "barfoo"},
-		{"foobar != barfoo;", "foobar", "!=", "barfoo"},
-		{"true == true", true, "==", true},
-		{"true != false", true, "!=", false},
-		{"false == false", false, "==", false},
+		{"foobar is barfoo;", "foobar", "is", "barfoo"},
+		{"foobar aint barfoo;", "foobar", "aint", "barfoo"},
+		{"noCap is noCap", true, "is", true},
+		{"noCap aint cap", true, "aint", false},
+		{"cap is cap", false, "is", false},
 	}
 
 	for _, tt := range infixTests {
@@ -398,8 +398,8 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"((-a) * b)",
 		},
 		{
-			"!-a",
-			"(!(-a))",
+			"nah-a",
+			"(nah(-a))",
 		},
 		{
 			"a + b + c",
@@ -430,32 +430,32 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"(3 + 4)((-5) * 5)",
 		},
 		{
-			"5 > 4 == 3 < 4",
-			"((5 > 4) == (3 < 4))",
+			"5 > 4 is 3 < 4",
+			"((5 > 4) is (3 < 4))",
 		},
 		{
-			"5 < 4 != 3 > 4",
-			"((5 < 4) != (3 > 4))",
+			"5 < 4 aint 3 > 4",
+			"((5 < 4) aint (3 > 4))",
 		},
 		{
-			"3 + 4 * 5 == 3 * 1 + 4 * 5",
-			"((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
+			"3 + 4 * 5 is 3 * 1 + 4 * 5",
+			"((3 + (4 * 5)) is ((3 * 1) + (4 * 5)))",
 		},
 		{
-			"true",
-			"true",
+			"noCap",
+			"noCap",
 		},
 		{
-			"false",
-			"false",
+			"cap",
+			"cap",
 		},
 		{
-			"3 > 5 == false",
-			"((3 > 5) == false)",
+			"3 > 5 is cap",
+			"((3 > 5) is cap)",
 		},
 		{
-			"3 < 5 == true",
-			"((3 < 5) == true)",
+			"3 < 5 is noCap",
+			"((3 < 5) is noCap)",
 		},
 		{
 			"1 + (2 + 3) + 4",
@@ -478,8 +478,8 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"(-(5 + 5))",
 		},
 		{
-			"!(true == true)",
-			"(!(true == true))",
+			"nah(noCap is noCap)",
+			"(nah(noCap is noCap))",
 		},
 		{
 			"a + add(b * c) + d",
@@ -521,8 +521,8 @@ func TestBooleanExpression(t *testing.T) {
 		input           string
 		expectedBoolean bool
 	}{
-		{"true;", true},
-		{"false;", false},
+		{"noCap;", true},
+		{"cap;", false},
 	}
 
 	for _, tt := range tests {
@@ -554,7 +554,7 @@ func TestBooleanExpression(t *testing.T) {
 }
 
 func TestIfExpression(t *testing.T) {
-	input := `if (x < y) { x }`
+	input := `vibe (x < y) { x }`
 
 	l := lexer.New(input)
 	p := New(l)
@@ -603,7 +603,7 @@ func TestIfExpression(t *testing.T) {
 }
 
 func TestIfElseExpression(t *testing.T) {
-	input := `if (x < y) { x } else { y }`
+	input := `vibe (x < y) { x } nvm { y }`
 
 	l := lexer.New(input)
 	p := New(l)
@@ -662,7 +662,7 @@ func TestIfElseExpression(t *testing.T) {
 }
 
 func TestFunctionLiteralParsing(t *testing.T) {
-	input := `fn(x, y) { x + y; }`
+	input := `cook(x, y) { x + y; }`
 
 	l := lexer.New(input)
 	p := New(l)
@@ -713,9 +713,9 @@ func TestFunctionParameterParsing(t *testing.T) {
 		input          string
 		expectedParams []string
 	}{
-		{input: "fn() {};", expectedParams: []string{}},
-		{input: "fn(x) {};", expectedParams: []string{"x"}},
-		{input: "fn(x, y, z) {};", expectedParams: []string{"x", "y", "z"}},
+		{input: "cook() {};", expectedParams: []string{}},
+		{input: "cook(x) {};", expectedParams: []string{"x"}},
+		{input: "cook(x, y, z) {};", expectedParams: []string{"x", "y", "z"}},
 	}
 
 	for _, tt := range tests {
@@ -970,7 +970,7 @@ func TestParsingHashLiteralsStringKeys(t *testing.T) {
 }
 
 func TestParsingHashLiteralsBooleanKeys(t *testing.T) {
-	input := `{true: 1, false: 2}`
+	input := `{noCap: 1, cap: 2}`
 
 	l := lexer.New(input)
 	p := New(l)
@@ -984,8 +984,8 @@ func TestParsingHashLiteralsBooleanKeys(t *testing.T) {
 	}
 
 	expected := map[string]int64{
-		"true":  1,
-		"false": 2,
+		"noCap": 1,
+		"cap":   2,
 	}
 
 	if len(hash.Pairs) != len(expected) {
@@ -1089,8 +1089,8 @@ func TestParsingHashLiteralsWithExpressions(t *testing.T) {
 }
 
 func testLetStatement(t *testing.T, s ast.Statement, name string) bool {
-	if s.TokenLiteral() != "let" {
-		t.Errorf("s.TokenLiteral not 'let'. got=%q", s.TokenLiteral())
+	if s.TokenLiteral() != "fr" {
+		t.Errorf("s.TokenLiteral not 'fr'. got=%q", s.TokenLiteral())
 		return false
 	}
 
@@ -1212,9 +1212,13 @@ func testBooleanLiteral(t *testing.T, exp ast.Expression, value bool) bool {
 		return false
 	}
 
-	if bo.TokenLiteral() != fmt.Sprintf("%t", value) {
-		t.Errorf("bo.TokenLiteral not %t. got=%s",
-			value, bo.TokenLiteral())
+	expectedLiteral := "cap"
+	if value {
+		expectedLiteral = "noCap"
+	}
+	if bo.TokenLiteral() != expectedLiteral {
+		t.Errorf("bo.TokenLiteral not %s. got=%s",
+			expectedLiteral, bo.TokenLiteral())
 		return false
 	}
 
