@@ -10,14 +10,18 @@ func TestNextToken(t *testing.T) {
 	input := `fr five = 5;
 fr ten = 10;
 
+// Single line comment before function
 fr add = cook(x, y) {
   x + y;
 };
 
-fr result = add(five, ten);
-nah-/*5;
+fr result = add(five, ten); // Single line comment at end of line
+nah-*/5;
 5 < 10 > 5;
 
+/* Multiline comment
+That spans across multiple
+lines */
 vibe (5 < 10) {
 	yeet noCap;
 } nvm {
@@ -30,6 +34,7 @@ vibe (5 < 10) {
 "foo bar"
 [1, 2];
 {"foo": "bar"}
+// Comment at the end of file
 `
 
 	tests := []struct {
@@ -74,8 +79,8 @@ vibe (5 < 10) {
 		{token.SEMICOLON, ";"},
 		{token.BANG, "nah"},
 		{token.MINUS, "-"},
-		{token.SLASH, "/"},
 		{token.ASTERISK, "*"},
+		{token.SLASH, "/"},
 		{token.INT, "5"},
 		{token.SEMICOLON, ";"},
 		{token.INT, "5"},
