@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"monkey/ast"
 	"monkey/lexer"
+	"strconv"
 	"testing"
 )
 
@@ -291,6 +292,37 @@ func TestIntegerLiteralExpression(t *testing.T) {
 	}
 }
 
+func TestFloatLiteralExpression(t *testing.T) {
+	input := "3.14;"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program has not enough statements. got=%d",
+			len(program.Statements))
+	}
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T",
+			program.Statements[0])
+	}
+
+	literal, ok := stmt.Expression.(*ast.FloatLiteral)
+	if !ok {
+		t.Fatalf("exp not *ast.FloatLiteral. got=%T", stmt.Expression)
+	}
+	if literal.Value != 3.14 {
+		t.Errorf("literal.Value not %f. got=%f", 3.14, literal.Value)
+	}
+	if literal.TokenLiteral() != "3.14" {
+		t.Errorf("literal.TokenLiteral not %s. got=%s", "3.14",
+			literal.TokenLiteral())
+	}
+}
+
 func TestParsingPrefixExpressions(t *testing.T) {
 	prefixTests := []struct {
 		input    string
@@ -299,6 +331,7 @@ func TestParsingPrefixExpressions(t *testing.T) {
 	}{
 		{"nah 5;", "nah", 5},
 		{"-15;", "-", 15},
+		{"-3.14;", "-", 3.14},
 		{"nah foobar;", "nah", "foobar"},
 		{"-foobar;", "-", "foobar"},
 		{"nah noCap;", "nah", true},
@@ -349,6 +382,7 @@ func TestParsingInfixExpressions(t *testing.T) {
 		{"5 / 5;", 5, "/", 5},
 		{"5 > 5;", 5, ">", 5},
 		{"5 < 5;", 5, "<", 5},
+		{"5.0 > 5;", 5.0, ">", 5},
 		{"5 is 5;", 5, "is", 5},
 		{"5 aint 5;", 5, "aint", 5},
 		{"foobar + barfoo;", "foobar", "+", "barfoo"},
@@ -476,6 +510,10 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 		{
 			"-(5 + 5)",
 			"(-(5 + 5))",
+		},
+		{
+			"-(4.15 + 5.15)",
+			"(-(4.15 + 5.15))",
 		},
 		{
 			"nah(noCap is noCap)",
@@ -1153,6 +1191,8 @@ func testLiteralExpression(
 		return testIdentifier(t, exp, v)
 	case bool:
 		return testBooleanLiteral(t, exp, v)
+	case float64:
+		return testFloatLiteral(t, exp, v)
 	}
 	t.Errorf("type of exp not handled. got=%T", exp)
 	return false
@@ -1173,6 +1213,36 @@ func testIntegerLiteral(t *testing.T, il ast.Expression, value int64) bool {
 	if integ.TokenLiteral() != fmt.Sprintf("%d", value) {
 		t.Errorf("integ.TokenLiteral not %d. got=%s", value,
 			integ.TokenLiteral())
+		return false
+	}
+
+	return true
+}
+
+func testFloatLiteral(t *testing.T, fl ast.Expression, value float64) bool {
+	fmt.Printf("testFloatLiteral: %v\n", value)
+	floatLit, ok := fl.(*ast.FloatLiteral)
+	if !ok {
+		t.Errorf("fl not *ast.FloatLiteral. got=%T", fl)
+		return false
+	}
+
+	if floatLit.Value != value {
+		t.Errorf("floatLit.Value not %f. got=%f", value, floatLit.Value)
+		return false
+	}
+
+	// Parse the expected value from the token literal instead of formatting the float
+	expectedTokenLiteral := floatLit.TokenLiteral()
+	parsedValue, err := strconv.ParseFloat(expectedTokenLiteral, 64)
+	if err != nil {
+		t.Errorf("failed to parse token literal as float: %s", expectedTokenLiteral)
+		return false
+	}
+
+	if parsedValue != value {
+		t.Errorf("floatLit.TokenLiteral parsed value not %f. got=%f from %s",
+			value, parsedValue, expectedTokenLiteral)
 		return false
 	}
 

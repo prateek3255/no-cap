@@ -34,6 +34,8 @@ vibe (5 < 10) {
 "foo bar"
 [1, 2];
 {"foo": "bar"}
+fr x =.04
+x * 5.05
 // Comment at the end of file
 `
 
@@ -127,6 +129,13 @@ vibe (5 < 10) {
 		{token.COLON, ":"},
 		{token.STRING, "bar"},
 		{token.RBRACE, "}"},
+		{token.LET, "fr"},
+		{token.IDENT, "x"},
+		{token.ASSIGN, "="},
+		{token.FLOAT, ".04"},
+		{token.IDENT, "x"},
+		{token.ASTERISK, "*"},
+		{token.FLOAT, "5.05"},
 		{token.EOF, ""},
 	}
 

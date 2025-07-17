@@ -16,6 +16,7 @@ const (
 	NULL_OBJ         = "NULL"
 	ERROR_OBJ        = "ERROR"
 	INTEGER_OBJ      = "INTEGER"
+	FLOAT_OBJ        = "FLOAT"
 	BOOLEAN_OBJ      = "BOOLEAN"
 	STRING_OBJ       = "STRING"
 	RETURN_VALUE_OBJ = "RETURN_VALUE"
@@ -49,6 +50,19 @@ func (i *Integer) Type() ObjectType { return INTEGER_OBJ }
 func (i *Integer) Inspect() string  { return fmt.Sprintf("%d", i.Value) }
 func (i *Integer) HashKey() HashKey {
 	return HashKey{Type: i.Type(), Value: uint64(i.Value)}
+}
+
+type Float struct {
+	Value float64
+}
+
+func (f *Float) Type() ObjectType { return FLOAT_OBJ }
+func (f *Float) Inspect() string  { return fmt.Sprintf("%f", f.Value) }
+func (f *Float) HashKey() HashKey {
+	h := fnv.New64a()
+	h.Write([]byte(fmt.Sprintf("%f", f.Value)))
+
+	return HashKey{Type: f.Type(), Value: h.Sum64()}
 }
 
 type Boolean struct {
