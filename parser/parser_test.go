@@ -1295,6 +1295,21 @@ func testBooleanLiteral(t *testing.T, exp ast.Expression, value bool) bool {
 	return true
 }
 
+func testStringLiteral(t *testing.T, exp ast.Expression, value string) bool {
+	str, ok := exp.(*ast.StringLiteral)
+	if !ok {
+		t.Errorf("exp not *ast.StringLiteral. got=%T", exp)
+		return false
+	}
+
+	if str.Value != value {
+		t.Errorf("str.Value not %s. got=%s", value, str.Value)
+		return false
+	}
+
+	return true
+}
+
 func checkParserErrors(t *testing.T, p *Parser) {
 	errors := p.Errors()
 	if len(errors) == 0 {
@@ -1306,4 +1321,286 @@ func checkParserErrors(t *testing.T, p *Parser) {
 		t.Errorf("parser error: %q", msg)
 	}
 	t.FailNow()
+}
+
+func TestIndexExpressionAssignmentStatement(t *testing.T) {
+	tests := []struct {
+		input              string
+		expectedIdentifier string
+		expectedIndex      interface{}
+		expectedValue      interface{}
+	}{
+		{"x[5] = 10;", "x", 5, 10},
+		{"arr[0] = noCap;", "arr", 0, true},
+		{"myArray[key] = value;", "myArray", "key", "value"},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements does not contain 1 statement. got=%d", len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.IndexExpressionAssignmentStatement)
+		if !ok {
+			t.Fatalf("stmt not *ast.IndexExpressionAssignmentStatement. got=%T", program.Statements[0])
+		}
+
+		if !testIdentifier(t, stmt.Left.Left, tt.expectedIdentifier) {
+			return
+		}
+
+		if !testLiteralExpression(t, stmt.Left.Index, tt.expectedIndex) {
+			return
+		}
+
+		if !testLiteralExpression(t, stmt.Value, tt.expectedValue) {
+			return
+		}
+	}
+}
+
+func TestComplexIndexExpressionAssignmentStatement(t *testing.T) {
+	tests := []struct {
+		input       string
+		description string
+	}{
+		{"x[5 + 6] = 5;", "arithmetic expression in index"},
+		{"x[y[8] - z[9]] = 5;", "nested index expressions with arithmetic"},
+		{"x[5][\"h\"] = 5;", "chained index expressions"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			l := lexer.New(tt.input)
+			p := New(l)
+			program := p.ParseProgram()
+			checkParserErrors(t, p)
+
+			if len(program.Statements) != 1 {
+				t.Fatalf("program.Statements does not contain 1 statement. got=%d", len(program.Statements))
+			}
+
+			stmt, ok := program.Statements[0].(*ast.IndexExpressionAssignmentStatement)
+			if !ok {
+				t.Fatalf("stmt not *ast.IndexExpressionAssignmentStatement. got=%T", program.Statements[0])
+			}
+
+			// Verify that we have a valid index expression on the left
+			if stmt.Left == nil {
+				t.Fatalf("stmt.Left is nil")
+			}
+
+			// Verify that we have a value on the right
+			if stmt.Value == nil {
+				t.Fatalf("stmt.Value is nil")
+			}
+
+			// For the specific test cases, verify the structure
+			switch tt.input {
+			case "x[5 + 6] = 5;":
+				// Left should be x
+				if !testIdentifier(t, stmt.Left.Left, "x") {
+					return
+				}
+				// Index should be 5 + 6
+				if !testInfixExpression(t, stmt.Left.Index, 5, "+", 6) {
+					return
+				}
+				// Value should be 5
+				if !testLiteralExpression(t, stmt.Value, 5) {
+					return
+				}
+
+			case "x[y[8] - z[9]] = 5;":
+				// Left should be x
+				if !testIdentifier(t, stmt.Left.Left, "x") {
+					return
+				}
+				// Index should be y[8] - z[9]
+				indexInfix, ok := stmt.Left.Index.(*ast.InfixExpression)
+				if !ok {
+					t.Fatalf("stmt.Left.Index not *ast.InfixExpression. got=%T", stmt.Left.Index)
+				}
+				if indexInfix.Operator != "-" {
+					t.Errorf("indexInfix.Operator not '-'. got=%s", indexInfix.Operator)
+				}
+
+				// Left side should be y[8]
+				leftIndex, ok := indexInfix.Left.(*ast.IndexExpression)
+				if !ok {
+					t.Fatalf("indexInfix.Left not *ast.IndexExpression. got=%T", indexInfix.Left)
+				}
+				if !testIdentifier(t, leftIndex.Left, "y") {
+					return
+				}
+				if !testLiteralExpression(t, leftIndex.Index, 8) {
+					return
+				}
+
+				// Right side should be z[9]
+				rightIndex, ok := indexInfix.Right.(*ast.IndexExpression)
+				if !ok {
+					t.Fatalf("indexInfix.Right not *ast.IndexExpression. got=%T", indexInfix.Right)
+				}
+				if !testIdentifier(t, rightIndex.Left, "z") {
+					return
+				}
+				if !testLiteralExpression(t, rightIndex.Index, 9) {
+					return
+				}
+
+				// Value should be 5
+				if !testLiteralExpression(t, stmt.Value, 5) {
+					return
+				}
+
+			case "x[5][\"h\"] = 5;":
+				// This should parse as (x[5])["h"] = 5
+				// So stmt.Left should be a chained index expression
+				innerIndex, ok := stmt.Left.Left.(*ast.IndexExpression)
+				if !ok {
+					t.Fatalf("stmt.Left.Left not *ast.IndexExpression. got=%T", stmt.Left.Left)
+				}
+				if !testIdentifier(t, innerIndex.Left, "x") {
+					return
+				}
+				if !testLiteralExpression(t, innerIndex.Index, 5) {
+					return
+				}
+				if !testStringLiteral(t, stmt.Left.Index, "h") {
+					return
+				}
+				if !testLiteralExpression(t, stmt.Value, 5) {
+					return
+				}
+			}
+		})
+	}
+}
+
+func TestIndexExpressionStillWorksAsExpression(t *testing.T) {
+	tests := []struct {
+		input       string
+		description string
+	}{
+		{"x[4] + y[9];", "index expressions in arithmetic"},
+		{"x[4];", "standalone index expression"},
+		{"fn()[5];", "index on function call result"},
+		{"arr[i][j];", "chained index expressions"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			l := lexer.New(tt.input)
+			p := New(l)
+			program := p.ParseProgram()
+			checkParserErrors(t, p)
+
+			if len(program.Statements) != 1 {
+				t.Fatalf("program.Statements does not contain 1 statement. got=%d", len(program.Statements))
+			}
+
+			stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+			if !ok {
+				t.Fatalf("stmt not *ast.ExpressionStatement. got=%T", program.Statements[0])
+			}
+
+			// Verify that the expression is parsed correctly based on the test case
+			switch tt.input {
+			case "x[4] + y[9];":
+				// Should be an infix expression
+				infixExp, ok := stmt.Expression.(*ast.InfixExpression)
+				if !ok {
+					t.Fatalf("stmt.Expression not *ast.InfixExpression. got=%T", stmt.Expression)
+				}
+				if infixExp.Operator != "+" {
+					t.Errorf("infixExp.Operator not '+'. got=%s", infixExp.Operator)
+				}
+
+				// Left should be x[4]
+				leftIndex, ok := infixExp.Left.(*ast.IndexExpression)
+				if !ok {
+					t.Fatalf("infixExp.Left not *ast.IndexExpression. got=%T", infixExp.Left)
+				}
+				if !testIdentifier(t, leftIndex.Left, "x") {
+					return
+				}
+				if !testLiteralExpression(t, leftIndex.Index, 4) {
+					return
+				}
+
+				// Right should be y[9]
+				rightIndex, ok := infixExp.Right.(*ast.IndexExpression)
+				if !ok {
+					t.Fatalf("infixExp.Right not *ast.IndexExpression. got=%T", infixExp.Right)
+				}
+				if !testIdentifier(t, rightIndex.Left, "y") {
+					return
+				}
+				if !testLiteralExpression(t, rightIndex.Index, 9) {
+					return
+				}
+
+			case "x[4];":
+				// Should be an index expression
+				indexExp, ok := stmt.Expression.(*ast.IndexExpression)
+				if !ok {
+					t.Fatalf("stmt.Expression not *ast.IndexExpression. got=%T", stmt.Expression)
+				}
+				if !testIdentifier(t, indexExp.Left, "x") {
+					return
+				}
+				if !testLiteralExpression(t, indexExp.Index, 4) {
+					return
+				}
+
+			case "fn()[5];":
+				// Should be an index expression where left is a call expression
+				indexExp, ok := stmt.Expression.(*ast.IndexExpression)
+				if !ok {
+					t.Fatalf("stmt.Expression not *ast.IndexExpression. got=%T", stmt.Expression)
+				}
+
+				callExp, ok := indexExp.Left.(*ast.CallExpression)
+				if !ok {
+					t.Fatalf("indexExp.Left not *ast.CallExpression. got=%T", indexExp.Left)
+				}
+				if !testIdentifier(t, callExp.Function, "fn") {
+					return
+				}
+				if !testLiteralExpression(t, indexExp.Index, 5) {
+					return
+				}
+
+			case "arr[i][j];":
+				// Should be a chained index expression
+				indexExp, ok := stmt.Expression.(*ast.IndexExpression)
+				if !ok {
+					t.Fatalf("stmt.Expression not *ast.IndexExpression. got=%T", stmt.Expression)
+				}
+
+				// Left should be arr[i]
+				leftIndex, ok := indexExp.Left.(*ast.IndexExpression)
+				if !ok {
+					t.Fatalf("indexExp.Left not *ast.IndexExpression. got=%T", indexExp.Left)
+				}
+				if !testIdentifier(t, leftIndex.Left, "arr") {
+					return
+				}
+				if !testIdentifier(t, leftIndex.Index, "i") {
+					return
+				}
+
+				// Index should be j
+				if !testIdentifier(t, indexExp.Index, "j") {
+					return
+				}
+			}
+		})
+	}
 }

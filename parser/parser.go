@@ -162,11 +162,28 @@ func (p *Parser) parseStatement() ast.Statement {
 	case token.IDENT:
 		if p.peekTokenIs(token.ASSIGN) {
 			return p.parseAssignmentStatement()
+		} else if p.isIndexExpressionAssignment() {
+			return p.parseIndexExpressionAssignmentStatement()
 		}
 		fallthrough
 	default:
 		return p.parseExpressionStatement()
 	}
+}
+
+func (p *Parser) isIndexExpressionAssignment() bool {
+	if !p.peekTokenIs(token.LBRACKET) {
+		return false
+	}
+
+	lexerCopy := *p.l
+	curToken := p.curToken
+
+	for curToken.Type != token.ASSIGN && curToken.Type != token.EOF {
+		curToken = lexerCopy.NextToken()
+	}
+
+	return curToken.Type == token.ASSIGN
 }
 
 func (p *Parser) parseAssignmentStatement() *ast.AssignmentStatement {
@@ -182,6 +199,35 @@ func (p *Parser) parseAssignmentStatement() *ast.AssignmentStatement {
 	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}
+	return stmt
+}
+
+func (p *Parser) parseIndexExpressionAssignmentStatement() ast.Statement {
+	stmt := &ast.IndexExpressionAssignmentStatement{}
+
+	// Parse the entire left-hand side expression (which could be complex index expressions)
+	leftExpr := p.parseExpression(LOWEST)
+
+	indexExpr, ok := leftExpr.(*ast.IndexExpression)
+	if !ok {
+		return nil
+	}
+
+	stmt.Left = indexExpr
+
+	if !p.expectPeek(token.ASSIGN) {
+		return nil
+	}
+
+	stmt.Token = p.curToken
+	p.nextToken()
+
+	stmt.Value = p.parseExpression(LOWEST)
+
+	if p.peekTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+
 	return stmt
 }
 

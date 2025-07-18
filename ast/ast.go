@@ -111,6 +111,25 @@ func (as *AssignmentStatement) String() string {
 	return out.String()
 }
 
+type IndexExpressionAssignmentStatement struct {
+	Token token.Token
+	Left  *IndexExpression
+	Value Expression
+}
+
+func (aes *IndexExpressionAssignmentStatement) statementNode()       {}
+func (aes *IndexExpressionAssignmentStatement) TokenLiteral() string { return aes.Token.Literal }
+func (aes *IndexExpressionAssignmentStatement) String() string {
+	var out bytes.Buffer
+	out.WriteString(aes.Left.String())
+	out.WriteString(" = ")
+	if aes.Value != nil {
+		out.WriteString(aes.Value.String())
+	}
+	out.WriteString(";")
+	return out.String()
+}
+
 type ContinueStatement struct {
 	Token token.Token // the 'continue' token
 }
