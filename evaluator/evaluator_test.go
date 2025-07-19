@@ -916,6 +916,314 @@ func TestForStatementWithStringRange(t *testing.T) {
 	}
 }
 
+func TestIndexExpressionAssignment(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		// Basic array assignment
+		{
+			`fr arr = [1, 2, 3]; arr[0] = 10; arr[0];`,
+			10,
+		},
+		{
+			`fr arr = [1, 2, 3]; arr[1] = 20; arr[1];`,
+			20,
+		},
+		{
+			`fr arr = [1, 2, 3]; arr[2] = 30; arr[2];`,
+			30,
+		},
+		// Array assignment with expressions
+		{
+			`fr arr = [1, 2, 3]; arr[0] = arr[1] + arr[2]; arr[0];`,
+			5,
+		},
+		{
+			`fr arr = [1, 2, 3]; fr idx = 1; arr[idx] = 100; arr[1];`,
+			100,
+		},
+		// Basic hash assignment
+		{
+			`fr hash = {"a": 1, "b": 2}; hash["a"] = 10; hash["a"];`,
+			10,
+		},
+		{
+			`fr hash = {"a": 1, "b": 2}; hash["b"] = 20; hash["b"];`,
+			20,
+		},
+		// Hash assignment with new keys
+		{
+			`fr hash = {"a": 1}; hash["c"] = 30; hash["c"];`,
+			30,
+		},
+		// Hash assignment with different key types
+		{
+			`fr hash = {1: "one", 2: "two"}; hash[1] = "ONE"; hash[1];`,
+			"ONE",
+		},
+		{
+			`fr hash = {noCap: 1, cap: 2}; hash[noCap] = 100; hash[noCap];`,
+			100,
+		},
+		// Multiple assignments
+		{
+			`fr arr = [1, 2, 3]; arr[0] = 10; arr[1] = 20; arr[2] = 30; arr[0] + arr[1] + arr[2];`,
+			60,
+		},
+		{
+			`fr hash = {}; hash["x"] = 1; hash["y"] = 2; hash["z"] = 3; hash["x"] + hash["y"] + hash["z"];`,
+			6,
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		integer, ok := tt.expected.(int)
+		if ok {
+			testIntegerObject(t, evaluated, int64(integer))
+		} else {
+			str, ok := tt.expected.(string)
+			if ok {
+				testStringObject(t, evaluated, str)
+			}
+		}
+	}
+}
+
+func TestComplexIndexExpressionAssignment(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		// Array inside hash
+		{
+			`fr data = {"nums": [1, 2, 3]}; data["nums"][0] = 100; data["nums"][0];`,
+			100,
+		},
+		{
+			`fr data = {"nums": [1, 2, 3]}; data["nums"][1] = data["nums"][0] + data["nums"][2]; data["nums"][1];`,
+			4,
+		},
+		// Hash inside array
+		{
+			`fr data = [{"a": 1}, {"b": 2}]; data[0]["a"] = 100; data[0]["a"];`,
+			100,
+		},
+		{
+			`fr data = [{"a": 1}, {"b": 2}]; data[1]["c"] = 300; data[1]["c"];`,
+			300,
+		},
+		// Nested arrays
+		{
+			`fr matrix = [[1, 2], [3, 4]]; matrix[0][1] = 20; matrix[0][1];`,
+			20,
+		},
+		{
+			`fr matrix = [[1, 2], [3, 4]]; matrix[1][0] = matrix[0][0] + matrix[0][1]; matrix[1][0];`,
+			3,
+		},
+		// Nested hashes
+		{
+			`fr nested = {"outer": {"inner": 1}}; nested["outer"]["inner"] = 100; nested["outer"]["inner"];`,
+			100,
+		},
+		{
+			`fr nested = {"a": {"b": {"c": 1}}}; nested["a"]["b"]["c"] = 999; nested["a"]["b"]["c"];`,
+			999,
+		},
+		// Mixed complex nesting
+		{
+			`fr complex = {"data": [{"values": [1, 2, 3]}]}; complex["data"][0]["values"][1] = 200; complex["data"][0]["values"][1];`,
+			200,
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		integer, ok := tt.expected.(int)
+		if ok {
+			testIntegerObject(t, evaluated, int64(integer))
+		}
+	}
+}
+
+func TestIndexExpressionAssignmentErrors(t *testing.T) {
+	tests := []struct {
+		input           string
+		expectedMessage string
+	}{
+		// Array index out of bounds
+		{
+			`fr arr = [1, 2, 3]; arr[5] = 10;`,
+			"index out of bounds: 5",
+		},
+		{
+			`fr arr = [1, 2, 3]; arr[-1] = 10;`,
+			"index out of bounds: -1",
+		},
+		// Invalid types for index assignment
+		{
+			`fr num = 42; num[0] = 10;`,
+			"index expression assignment not supported for type INTEGER",
+		},
+		{
+			`fr str = "hello"; str[0] = "H";`,
+			"index expression assignment not supported for type STRING",
+		},
+		{
+			`fr fn = cook(x) { x }; fn[0] = 10;`,
+			"index expression assignment not supported for type FUNCTION",
+		},
+		// Invalid array index type
+		{
+			`fr arr = [1, 2, 3]; arr["invalid"] = 10;`,
+			"index out of bounds: 0", // This might need adjustment based on actual implementation
+		},
+		// Invalid hash key type
+		{
+			`fr hash = {}; hash[cook(x) { x }] = 10;`,
+			"unusable as hash key: FUNCTION",
+		},
+		{
+			`fr hash = {}; hash[[1, 2, 3]] = 10;`,
+			"unusable as hash key: ARRAY",
+		},
+		// Assignment to non-existent nested structure
+		{
+			`fr arr = [1, 2, 3]; arr[0]["key"] = 10;`,
+			"index expression assignment not supported for type INTEGER",
+		},
+		{
+			`fr hash = {"a": 1}; hash["a"][0] = 10;`,
+			"index expression assignment not supported for type INTEGER",
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		errObj, ok := evaluated.(*object.Error)
+		if !ok {
+			t.Errorf("no error object returned for input %q. got=%T(%+v)",
+				tt.input, evaluated, evaluated)
+			continue
+		}
+
+		if errObj.Message != tt.expectedMessage {
+			t.Errorf("wrong error message for input %q. expected=%q, got=%q",
+				tt.input, tt.expectedMessage, errObj.Message)
+		}
+	}
+}
+
+func TestIndexExpressionAssignmentWithDifferentTypes(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		// Assigning different types to arrays
+		{
+			`fr arr = [1, 2, 3]; arr[0] = "string"; arr[0];`,
+			"string",
+		},
+		{
+			`fr arr = [1, 2, 3]; arr[1] = noCap; arr[1];`,
+			true,
+		},
+		{
+			`fr arr = [1, 2, 3]; arr[2] = [4, 5, 6]; len(arr[2]);`,
+			3,
+		},
+		{
+			`fr arr = [1, 2, 3]; arr[0] = {"key": "value"}; arr[0]["key"];`,
+			"value",
+		},
+		// Assigning different types to hashes
+		{
+			`fr hash = {}; hash["number"] = 42; hash["number"];`,
+			42,
+		},
+		{
+			`fr hash = {}; hash["string"] = "hello"; hash["string"];`,
+			"hello",
+		},
+		{
+			`fr hash = {}; hash["bool"] = cap; hash["bool"];`,
+			false,
+		},
+		{
+			`fr hash = {}; hash["array"] = [1, 2, 3]; len(hash["array"]);`,
+			3,
+		},
+		{
+			`fr hash = {}; hash["nested"] = {"inner": 1}; hash["nested"]["inner"];`,
+			1,
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		switch expected := tt.expected.(type) {
+		case int:
+			testIntegerObject(t, evaluated, int64(expected))
+		case string:
+			testStringObject(t, evaluated, expected)
+		case bool:
+			testBooleanObject(t, evaluated, expected)
+		}
+	}
+}
+
+func TestIndexExpressionAssignmentInLoops(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		// Modifying array in for loop
+		{
+			`
+			fr arr = [1, 2, 3, 4, 5];
+			fr indices = [0, 2, 4];
+			stalk (i in indices) {
+				arr[i] = arr[i] * 10;
+			}
+			arr[0] + arr[2] + arr[4];
+			`,
+			90, // 10 + 30 + 50 = 90
+		},
+		// Building hash in loop
+		{
+			`
+			fr hash = {};
+			fr nums = [1, 2, 3];
+			stalk (num in nums) {
+				hash[num] = num * num;
+			}
+			hash[1] + hash[2] + hash[3];
+			`,
+			14, // 1 + 4 + 9
+		},
+		// Modifying nested structure in loop
+		{
+			`
+			fr matrix = [[1, 2], [3, 4], [5, 6]];
+			fr count = 0;
+			stalk (row in matrix) {
+				matrix[count][0] = matrix[count][0] + 10;
+				count = count + 1;
+			}
+			matrix[0][0] + matrix[1][0] + matrix[2][0];
+			`,
+			39, // 11 + 13 + 15
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testIntegerObject(t, evaluated, tt.expected)
+	}
+}
+
 func testEval(input string) object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)
@@ -971,6 +1279,20 @@ func testBooleanObject(t *testing.T, obj object.Object, expected bool) bool {
 func testNullObject(t *testing.T, obj object.Object) bool {
 	if obj != NULL {
 		t.Errorf("object is not NULL. got=%T (%+v)", obj, obj)
+		return false
+	}
+	return true
+}
+
+func testStringObject(t *testing.T, obj object.Object, expected string) bool {
+	result, ok := obj.(*object.String)
+	if !ok {
+		t.Errorf("object is not String. got=%T (%+v)", obj, obj)
+		return false
+	}
+	if result.Value != expected {
+		t.Errorf("object has wrong value. got=%q, want=%q",
+			result.Value, expected)
 		return false
 	}
 	return true

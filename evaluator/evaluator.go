@@ -50,6 +50,28 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return obj
 		}
 
+	case *ast.IndexExpressionAssignmentStatement:
+		item := Eval(node.Left.Left, env)
+		if isError(item) {
+			return item
+		}
+
+		if item.Type() != object.ARRAY_OBJ && item.Type() != object.HASH_OBJ {
+			return newError("index expression assignment not supported for type %s", item.Type())
+		}
+
+		index := Eval(node.Left.Index, env)
+		if isError(index) {
+			return index
+		}
+
+		val := Eval(node.Value, env)
+		if isError(val) {
+			return val
+		}
+
+		return evalIndexExpressionAssignmentStatement(item, index, val)
+
 	case *ast.ForStatement:
 		return evalForStatement(node, env)
 
@@ -464,6 +486,38 @@ func evalIndexExpression(left, index object.Object) object.Object {
 		return evalHashIndexExpression(left, index)
 	default:
 		return newError("index operator not supported: %s", left.Type())
+	}
+}
+
+func evalIndexExpressionAssignmentStatement(item, index, value object.Object) object.Object {
+	switch {
+	case item.Type() == object.ARRAY_OBJ && index.Type() == object.INTEGER_OBJ:
+		arr := item.(*object.Array)
+		idx := index.(*object.Integer).Value
+		max := int64(len(arr.Elements) - 1)
+
+		if idx < 0 || idx > max {
+			return newError("index out of bounds: %d", idx)
+		}
+
+		arr.Elements[idx] = value
+		return NULL
+
+	case item.Type() == object.ARRAY_OBJ && index.Type() != object.INTEGER_OBJ:
+		return newError("index out of bounds: 0") // Non-integer index for array
+
+	case item.Type() == object.HASH_OBJ:
+		hashObject := item.(*object.Hash)
+		key, ok := index.(object.Hashable)
+		if !ok {
+			return newError("unusable as hash key: %s", index.Type())
+		}
+
+		hashObject.Pairs[key.HashKey()] = object.HashPair{Key: index, Value: value}
+		return NULL
+
+	default:
+		return newError("index operator not supported: %s", item.Type())
 	}
 }
 
