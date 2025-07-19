@@ -658,6 +658,28 @@ func TestForStatement(t *testing.T) {
 	testIntegerObject(t, result, 10)
 }
 
+func TestForStatementWithHash(t *testing.T) {
+	input := `
+		fr h = {
+			"one": 1,
+			"two": 2
+		};
+		fr count = 0;
+		stalk (i in h) {
+			count = count + h[i];
+		}
+		count;
+	`
+
+	evaluated := testEval(input)
+	result, ok := evaluated.(*object.Integer)
+	if !ok {
+		t.Fatalf("Eval didn't return Integer. got=%T (%+v)", evaluated, evaluated)
+	}
+
+	testIntegerObject(t, result, 3)
+}
+
 func TestForStatementWithBreak(t *testing.T) {
 	input := `
 		fr items = [1, 2, 3, 4];

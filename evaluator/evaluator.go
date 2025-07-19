@@ -584,14 +584,24 @@ func evalForStatement(node *ast.ForStatement, env *object.Environment) object.Ob
 		return items
 	}
 
-	if items.Type() != object.ARRAY_OBJ {
+	if items.Type() != object.ARRAY_OBJ && items.Type() != object.HASH_OBJ {
 		return newError("unusable as an iterator for the loop: %s", items.Type())
 	}
 
-	arr := items.(*object.Array)
+	var elements []object.Object
+
+	if items.Type() == object.ARRAY_OBJ {
+		elements = items.(*object.Array).Elements
+	} else {
+		hashObj := items.(*object.Hash)
+
+		for _, pair := range hashObj.Pairs {
+			elements = append(elements, pair.Key)
+		}
+	}
 
 	var result object.Object = NULL
-	for _, element := range arr.Elements {
+	for _, element := range elements {
 		extendedEnv := extendForEnv(element, node.Key, env)
 		stmtResult := evalBlockStatement(node.Body, extendedEnv)
 		if stmtResult != nil {
