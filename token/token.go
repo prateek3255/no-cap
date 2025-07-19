@@ -44,6 +44,7 @@ const (
 	FALSE    = "FALSE"
 	IF       = "IF"
 	ELSE     = "ELSE"
+	ELSE_IF  = "ELSE_IF"
 	RETURN   = "RETURN"
 	FOR      = "FOR"
 	WHILE    = "WHILE"
@@ -64,6 +65,7 @@ var keywords = map[string]TokenType{
 	"noCap":    TRUE,
 	"vibe":     IF,
 	"nvm":      ELSE,
+	"unless":   ELSE_IF,
 	"yeet":     RETURN,
 	"stalk":    FOR,
 	"onRepeat": WHILE,

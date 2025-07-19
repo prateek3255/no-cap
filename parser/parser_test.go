@@ -1604,3 +1604,361 @@ func TestIndexExpressionStillWorksAsExpression(t *testing.T) {
 		})
 	}
 }
+
+func TestIfElseIfExpression(t *testing.T) {
+	input := `vibe (x < y) { x } unless (x > z) { z } nvm { y }`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain %d statements. got=%d\n",
+			1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T",
+			program.Statements[0])
+	}
+
+	exp, ok := stmt.Expression.(*ast.IfExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.IfExpression. got=%T", stmt.Expression)
+	}
+
+	// Test main condition
+	if !testInfixExpression(t, exp.Condition, "x", "<", "y") {
+		return
+	}
+
+	// Test consequence
+	if len(exp.Consequence.Statements) != 1 {
+		t.Errorf("consequence is not 1 statements. got=%d\n",
+			len(exp.Consequence.Statements))
+	}
+
+	consequence, ok := exp.Consequence.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Statements[0] is not ast.ExpressionStatement. got=%T",
+			exp.Consequence.Statements[0])
+	}
+
+	if !testIdentifier(t, consequence.Expression, "x") {
+		return
+	}
+
+	// Test else if
+	if len(exp.ElseIfs) != 1 {
+		t.Fatalf("exp.ElseIfs does not contain 1 else if. got=%d", len(exp.ElseIfs))
+	}
+
+	elseIf := exp.ElseIfs[0]
+	if !testInfixExpression(t, elseIf.Condition, "x", ">", "z") {
+		return
+	}
+
+	if len(elseIf.Consequence.Statements) != 1 {
+		t.Errorf("elseIf consequence is not 1 statements. got=%d\n",
+			len(elseIf.Consequence.Statements))
+	}
+
+	elseIfConsequence, ok := elseIf.Consequence.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("elseIf Statements[0] is not ast.ExpressionStatement. got=%T",
+			elseIf.Consequence.Statements[0])
+	}
+
+	if !testIdentifier(t, elseIfConsequence.Expression, "z") {
+		return
+	}
+
+	// Test alternative (else)
+	if len(exp.Alternative.Statements) != 1 {
+		t.Errorf("exp.Alternative.Statements does not contain 1 statements. got=%d\n",
+			len(exp.Alternative.Statements))
+	}
+
+	alternative, ok := exp.Alternative.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Alternative Statements[0] is not ast.ExpressionStatement. got=%T",
+			exp.Alternative.Statements[0])
+	}
+
+	if !testIdentifier(t, alternative.Expression, "y") {
+		return
+	}
+}
+
+func TestMultipleElseIfExpressions(t *testing.T) {
+	input := `vibe (x < 1) { "first" } unless (x < 2) { "second" } unless (x < 3) { "third" } nvm { "default" }`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain %d statements. got=%d\n",
+			1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T",
+			program.Statements[0])
+	}
+
+	exp, ok := stmt.Expression.(*ast.IfExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.IfExpression. got=%T", stmt.Expression)
+	}
+
+	// Test main condition
+	if !testInfixExpression(t, exp.Condition, "x", "<", 1) {
+		return
+	}
+
+	// Test main consequence
+	consequence, ok := exp.Consequence.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Consequence Statements[0] is not ast.ExpressionStatement. got=%T",
+			exp.Consequence.Statements[0])
+	}
+
+	if !testStringLiteral(t, consequence.Expression, "first") {
+		return
+	}
+
+	// Test multiple else ifs
+	if len(exp.ElseIfs) != 2 {
+		t.Fatalf("exp.ElseIfs does not contain 2 else ifs. got=%d", len(exp.ElseIfs))
+	}
+
+	// Test first else if
+	firstElseIf := exp.ElseIfs[0]
+	if !testInfixExpression(t, firstElseIf.Condition, "x", "<", 2) {
+		return
+	}
+
+	firstElseIfConsequence, ok := firstElseIf.Consequence.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("First elseIf Statements[0] is not ast.ExpressionStatement. got=%T",
+			firstElseIf.Consequence.Statements[0])
+	}
+
+	if !testStringLiteral(t, firstElseIfConsequence.Expression, "second") {
+		return
+	}
+
+	// Test second else if
+	secondElseIf := exp.ElseIfs[1]
+	if !testInfixExpression(t, secondElseIf.Condition, "x", "<", 3) {
+		return
+	}
+
+	secondElseIfConsequence, ok := secondElseIf.Consequence.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Second elseIf Statements[0] is not ast.ExpressionStatement. got=%T",
+			secondElseIf.Consequence.Statements[0])
+	}
+
+	if !testStringLiteral(t, secondElseIfConsequence.Expression, "third") {
+		return
+	}
+
+	// Test alternative (else)
+	if len(exp.Alternative.Statements) != 1 {
+		t.Errorf("exp.Alternative.Statements does not contain 1 statements. got=%d\n",
+			len(exp.Alternative.Statements))
+	}
+
+	alternative, ok := exp.Alternative.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Alternative Statements[0] is not ast.ExpressionStatement. got=%T",
+			exp.Alternative.Statements[0])
+	}
+
+	if !testStringLiteral(t, alternative.Expression, "default") {
+		return
+	}
+}
+
+func TestIfElseIfWithoutElse(t *testing.T) {
+	input := `vibe (x < y) { x } unless (x > z) { z }`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain %d statements. got=%d\n",
+			1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T",
+			program.Statements[0])
+	}
+
+	exp, ok := stmt.Expression.(*ast.IfExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.IfExpression. got=%T", stmt.Expression)
+	}
+
+	// Test main condition
+	if !testInfixExpression(t, exp.Condition, "x", "<", "y") {
+		return
+	}
+
+	// Test consequence
+	consequence, ok := exp.Consequence.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Consequence Statements[0] is not ast.ExpressionStatement. got=%T",
+			exp.Consequence.Statements[0])
+	}
+
+	if !testIdentifier(t, consequence.Expression, "x") {
+		return
+	}
+
+	// Test else if
+	if len(exp.ElseIfs) != 1 {
+		t.Fatalf("exp.ElseIfs does not contain 1 else if. got=%d", len(exp.ElseIfs))
+	}
+
+	elseIf := exp.ElseIfs[0]
+	if !testInfixExpression(t, elseIf.Condition, "x", ">", "z") {
+		return
+	}
+
+	elseIfConsequence, ok := elseIf.Consequence.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("elseIf Statements[0] is not ast.ExpressionStatement. got=%T",
+			elseIf.Consequence.Statements[0])
+	}
+
+	if !testIdentifier(t, elseIfConsequence.Expression, "z") {
+		return
+	}
+
+	// Test that there's no alternative (else)
+	if exp.Alternative != nil {
+		t.Errorf("exp.Alternative should be nil, got=%+v", exp.Alternative)
+	}
+}
+
+func TestComplexElseIfConditions(t *testing.T) {
+	input := `vibe (x + y > 10) { "big" } unless (x * y is 0) { "zero product" } unless (x is y) { "equal" } nvm { "other" }`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain %d statements. got=%d\n",
+			1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T",
+			program.Statements[0])
+	}
+
+	exp, ok := stmt.Expression.(*ast.IfExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.IfExpression. got=%T", stmt.Expression)
+	}
+
+	// Test main condition (x + y > 10)
+	mainCondition, ok := exp.Condition.(*ast.InfixExpression)
+	if !ok {
+		t.Fatalf("exp.Condition is not ast.InfixExpression. got=%T", exp.Condition)
+	}
+	if mainCondition.Operator != ">" {
+		t.Errorf("mainCondition.Operator not '>'. got=%s", mainCondition.Operator)
+		return
+	}
+	if !testInfixExpression(t, mainCondition.Left, "x", "+", "y") {
+		return
+	}
+	if !testLiteralExpression(t, mainCondition.Right, 10) {
+		return
+	}
+
+	// Test main consequence
+	consequence, ok := exp.Consequence.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Consequence Statements[0] is not ast.ExpressionStatement. got=%T",
+			exp.Consequence.Statements[0])
+	}
+
+	if !testStringLiteral(t, consequence.Expression, "big") {
+		return
+	}
+
+	// Test else ifs
+	if len(exp.ElseIfs) != 2 {
+		t.Fatalf("exp.ElseIfs does not contain 2 else ifs. got=%d", len(exp.ElseIfs))
+	}
+
+	// Test first else if (x * y is 0)
+	firstElseIf := exp.ElseIfs[0]
+	firstElseIfCondition, ok := firstElseIf.Condition.(*ast.InfixExpression)
+	if !ok {
+		t.Fatalf("firstElseIf.Condition is not ast.InfixExpression. got=%T", firstElseIf.Condition)
+	}
+	if firstElseIfCondition.Operator != "is" {
+		t.Errorf("firstElseIfCondition.Operator not 'is'. got=%s", firstElseIfCondition.Operator)
+		return
+	}
+	if !testInfixExpression(t, firstElseIfCondition.Left, "x", "*", "y") {
+		return
+	}
+	if !testLiteralExpression(t, firstElseIfCondition.Right, 0) {
+		return
+	}
+
+	firstElseIfConsequence, ok := firstElseIf.Consequence.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("First elseIf Statements[0] is not ast.ExpressionStatement. got=%T",
+			firstElseIf.Consequence.Statements[0])
+	}
+
+	if !testStringLiteral(t, firstElseIfConsequence.Expression, "zero product") {
+		return
+	}
+
+	// Test second else if (x is y)
+	secondElseIf := exp.ElseIfs[1]
+	if !testInfixExpression(t, secondElseIf.Condition, "x", "is", "y") {
+		return
+	}
+
+	secondElseIfConsequence, ok := secondElseIf.Consequence.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Second elseIf Statements[0] is not ast.ExpressionStatement. got=%T",
+			secondElseIf.Consequence.Statements[0])
+	}
+
+	if !testStringLiteral(t, secondElseIfConsequence.Expression, "equal") {
+		return
+	}
+
+	// Test alternative (else)
+	alternative, ok := exp.Alternative.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Alternative Statements[0] is not ast.ExpressionStatement. got=%T",
+			exp.Alternative.Statements[0])
+	}
+
+	if !testStringLiteral(t, alternative.Expression, "other") {
+		return
+	}
+}

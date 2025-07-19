@@ -193,7 +193,7 @@ func (fs *ForStatement) TokenLiteral() string { return fs.Token.Literal }
 func (fs *ForStatement) String() string {
 	var out bytes.Buffer
 
-	out.WriteString("for(")
+	out.WriteString("stalk(")
 	out.WriteString(fs.Key.Value)
 	out.WriteString(" in ")
 	out.WriteString(fs.Items.String() + ") ")
@@ -213,7 +213,7 @@ func (ws *WhileStatement) TokenLiteral() string { return ws.Token.Literal }
 func (ws *WhileStatement) String() string {
 	var out bytes.Buffer
 
-	out.WriteString("While(")
+	out.WriteString("onRepeat(")
 	out.WriteString(ws.Condition.String())
 	out.WriteString(")")
 	out.WriteString(ws.Body.String())
@@ -298,9 +298,15 @@ func (ie *InfixExpression) String() string {
 	return out.String()
 }
 
+type ElseIfExpression struct {
+	Token       token.Token
+	Condition   Expression
+	Consequence *BlockStatement
+}
 type IfExpression struct {
 	Token       token.Token // The 'if' token
 	Condition   Expression
+	ElseIfs     []*ElseIfExpression
 	Consequence *BlockStatement
 	Alternative *BlockStatement
 }
@@ -310,13 +316,22 @@ func (ie *IfExpression) TokenLiteral() string { return ie.Token.Literal }
 func (ie *IfExpression) String() string {
 	var out bytes.Buffer
 
-	out.WriteString("if")
+	out.WriteString("vibe")
 	out.WriteString(ie.Condition.String())
 	out.WriteString(" ")
 	out.WriteString(ie.Consequence.String())
 
+	if len(ie.ElseIfs) > 0 {
+		for _, cond := range ie.ElseIfs {
+			out.WriteString("unless ")
+			out.WriteString(cond.Condition.String())
+			out.WriteString(" ")
+			out.WriteString(cond.Consequence.String())
+		}
+	}
+
 	if ie.Alternative != nil {
-		out.WriteString("else ")
+		out.WriteString("nvm ")
 		out.WriteString(ie.Alternative.String())
 	}
 
