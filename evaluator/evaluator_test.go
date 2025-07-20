@@ -565,39 +565,39 @@ func TestArrayIndexExpressions(t *testing.T) {
 		expected interface{}
 	}{
 		{
-			"[1, 2, 3][0]",
-			1,
-		},
-		{
 			"[1, 2, 3][1]",
-			2,
+			1,
 		},
 		{
 			"[1, 2, 3][2]",
-			3,
-		},
-		{
-			"fr i = 0; [1][i];",
-			1,
-		},
-		{
-			"[1, 2, 3][1 + 1];",
-			3,
-		},
-		{
-			"fr myArray = [1, 2, 3]; myArray[2];",
-			3,
-		},
-		{
-			"fr myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];",
-			6,
-		},
-		{
-			"fr myArray = [1, 2, 3]; fr i = myArray[0]; myArray[i]",
 			2,
 		},
 		{
 			"[1, 2, 3][3]",
+			3,
+		},
+		{
+			"fr i = 1; [1][i];",
+			1,
+		},
+		{
+			"[1, 2, 3][1 + 1];",
+			2,
+		},
+		{
+			"fr myArray = [1, 2, 3]; myArray[3];",
+			3,
+		},
+		{
+			"fr myArray = [1, 2, 3]; myArray[1] + myArray[2] + myArray[3];",
+			6,
+		},
+		{
+			"fr myArray = [1, 2, 3]; fr i = myArray[1]; myArray[i]",
+			1,
+		},
+		{
+			"[1, 2, 3][4]",
 			nil,
 		},
 		{
@@ -1042,24 +1042,24 @@ func TestIndexExpressionAssignment(t *testing.T) {
 	}{
 		// Basic array assignment
 		{
-			`fr arr = [1, 2, 3]; arr[0] = 10; arr[0];`,
+			`fr arr = [1, 2, 3]; arr[1] = 10; arr[1];`,
 			10,
 		},
 		{
-			`fr arr = [1, 2, 3]; arr[1] = 20; arr[1];`,
+			`fr arr = [1, 2, 3]; arr[2] = 20; arr[2];`,
 			20,
 		},
 		{
-			`fr arr = [1, 2, 3]; arr[2] = 30; arr[2];`,
+			`fr arr = [1, 2, 3]; arr[3] = 30; arr[3];`,
 			30,
 		},
 		// Array assignment with expressions
 		{
-			`fr arr = [1, 2, 3]; arr[0] = arr[1] + arr[2]; arr[0];`,
+			`fr arr = [1, 2, 3]; arr[1] = arr[2] + arr[3]; arr[1];`,
 			5,
 		},
 		{
-			`fr arr = [1, 2, 3]; fr idx = 1; arr[idx] = 100; arr[1];`,
+			`fr arr = [1, 2, 3]; fr idx = 2; arr[idx] = 100; arr[2];`,
 			100,
 		},
 		// Basic hash assignment
@@ -1087,7 +1087,7 @@ func TestIndexExpressionAssignment(t *testing.T) {
 		},
 		// Multiple assignments
 		{
-			`fr arr = [1, 2, 3]; arr[0] = 10; arr[1] = 20; arr[2] = 30; arr[0] + arr[1] + arr[2];`,
+			`fr arr = [1, 2, 3]; arr[1] = 10; arr[2] = 20; arr[3] = 30; arr[1] + arr[2] + arr[3];`,
 			60,
 		},
 		{
@@ -1117,29 +1117,29 @@ func TestComplexIndexExpressionAssignment(t *testing.T) {
 	}{
 		// Array inside hash
 		{
-			`fr data = {"nums": [1, 2, 3]}; data["nums"][0] = 100; data["nums"][0];`,
+			`fr data = {"nums": [1, 2, 3]}; data["nums"][1] = 100; data["nums"][1];`,
 			100,
 		},
 		{
-			`fr data = {"nums": [1, 2, 3]}; data["nums"][1] = data["nums"][0] + data["nums"][2]; data["nums"][1];`,
+			`fr data = {"nums": [1, 2, 3]}; data["nums"][2] = data["nums"][1] + data["nums"][3]; data["nums"][2];`,
 			4,
 		},
 		// Hash inside array
 		{
-			`fr data = [{"a": 1}, {"b": 2}]; data[0]["a"] = 100; data[0]["a"];`,
+			`fr data = [{"a": 1}, {"b": 2}]; data[1]["a"] = 100; data[1]["a"];`,
 			100,
 		},
 		{
-			`fr data = [{"a": 1}, {"b": 2}]; data[1]["c"] = 300; data[1]["c"];`,
+			`fr data = [{"a": 1}, {"b": 2}]; data[2]["c"] = 300; data[2]["c"];`,
 			300,
 		},
 		// Nested arrays
 		{
-			`fr matrix = [[1, 2], [3, 4]]; matrix[0][1] = 20; matrix[0][1];`,
+			`fr matrix = [[1, 2], [3, 4]]; matrix[1][2] = 20; matrix[1][2];`,
 			20,
 		},
 		{
-			`fr matrix = [[1, 2], [3, 4]]; matrix[1][0] = matrix[0][0] + matrix[0][1]; matrix[1][0];`,
+			`fr matrix = [[1, 2], [3, 4]]; matrix[2][1] = matrix[1][1] + matrix[1][2]; matrix[2][1];`,
 			3,
 		},
 		// Nested hashes
@@ -1153,7 +1153,7 @@ func TestComplexIndexExpressionAssignment(t *testing.T) {
 		},
 		// Mixed complex nesting
 		{
-			`fr complex = {"data": [{"values": [1, 2, 3]}]}; complex["data"][0]["values"][1] = 200; complex["data"][0]["values"][1];`,
+			`fr complex = {"data": [{"values": [1, 2, 3]}]}; complex["data"][1]["values"][2] = 200; complex["data"][1]["values"][2];`,
 			200,
 		},
 	}
@@ -1210,11 +1210,11 @@ func TestIndexExpressionAssignmentErrors(t *testing.T) {
 		},
 		// Assignment to non-existent nested structure
 		{
-			`fr arr = [1, 2, 3]; arr[0]["key"] = 10;`,
+			`fr arr = [1, 2, 3]; arr[1]["key"] = 10;`,
 			"index expression assignment not supported for type INTEGER",
 		},
 		{
-			`fr hash = {"a": 1}; hash["a"][0] = 10;`,
+			`fr hash = {"a": 1}; hash["a"][1] = 10;`,
 			"index expression assignment not supported for type INTEGER",
 		},
 	}
@@ -1242,19 +1242,19 @@ func TestIndexExpressionAssignmentWithDifferentTypes(t *testing.T) {
 	}{
 		// Assigning different types to arrays
 		{
-			`fr arr = [1, 2, 3]; arr[0] = "string"; arr[0];`,
+			`fr arr = [1, 2, 3]; arr[1] = "string"; arr[1];`,
 			"string",
 		},
 		{
-			`fr arr = [1, 2, 3]; arr[1] = noCap; arr[1];`,
+			`fr arr = [1, 2, 3]; arr[2] = noCap; arr[2];`,
 			true,
 		},
 		{
-			`fr arr = [1, 2, 3]; arr[2] = [4, 5, 6]; len(arr[2]);`,
+			`fr arr = [1, 2, 3]; arr[3] = [4, 5, 6]; len(arr[3]);`,
 			3,
 		},
 		{
-			`fr arr = [1, 2, 3]; arr[0] = {"key": "value"}; arr[0]["key"];`,
+			`fr arr = [1, 2, 3]; arr[1] = {"key": "value"}; arr[1]["key"];`,
 			"value",
 		},
 		// Assigning different types to hashes
@@ -1302,11 +1302,11 @@ func TestIndexExpressionAssignmentInLoops(t *testing.T) {
 		{
 			`
 			fr arr = [1, 2, 3, 4, 5];
-			fr indices = [0, 2, 4];
+			fr indices = [1, 3, 5];
 			stalk (i in indices) {
 				arr[i] = arr[i] * 10;
 			}
-			arr[0] + arr[2] + arr[4];
+			arr[1] + arr[3] + arr[5];
 			`,
 			90, // 10 + 30 + 50 = 90
 		},
@@ -1326,12 +1326,12 @@ func TestIndexExpressionAssignmentInLoops(t *testing.T) {
 		{
 			`
 			fr matrix = [[1, 2], [3, 4], [5, 6]];
-			fr count = 0;
+			fr count = 1;
 			stalk (row in matrix) {
-				matrix[count][0] = matrix[count][0] + 10;
+				matrix[count][1] = matrix[count][1] + 10;
 				count = count + 1;
 			}
-			matrix[0][0] + matrix[1][0] + matrix[2][0];
+			matrix[1][1] + matrix[2][1] + matrix[3][1];
 			`,
 			39, // 11 + 13 + 15
 		},

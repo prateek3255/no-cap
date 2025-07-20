@@ -511,13 +511,13 @@ func evalIndexExpressionAssignmentStatement(item, index, value object.Object) ob
 	case item.Type() == object.ARRAY_OBJ && index.Type() == object.INTEGER_OBJ:
 		arr := item.(*object.Array)
 		idx := index.(*object.Integer).Value
-		max := int64(len(arr.Elements) - 1)
+		max := int64(len(arr.Elements))
 
-		if idx < 0 || idx > max {
+		if idx < 1 || idx > max {
 			return newError("index out of bounds: %d", idx)
 		}
 
-		arr.Elements[idx] = value
+		arr.Elements[idx-1] = value
 		return NULL
 
 	case item.Type() == object.ARRAY_OBJ && index.Type() != object.INTEGER_OBJ:
@@ -541,13 +541,13 @@ func evalIndexExpressionAssignmentStatement(item, index, value object.Object) ob
 func evalArrayIndexExpression(array, index object.Object) object.Object {
 	arrayObject := array.(*object.Array)
 	idx := index.(*object.Integer).Value
-	max := int64(len(arrayObject.Elements) - 1)
+	max := int64(len(arrayObject.Elements))
 
-	if idx < 0 || idx > max {
+	if idx < 1 || idx > max {
 		return NULL
 	}
 
-	return arrayObject.Elements[idx]
+	return arrayObject.Elements[idx-1]
 }
 
 func evalHashLiteral(
