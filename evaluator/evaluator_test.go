@@ -134,6 +134,74 @@ func TestIfElseExpressions(t *testing.T) {
 	}
 }
 
+func TestIfElseIfExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		// Basic else-if: first condition true
+		{"vibe (noCap) { 10 } unless (cap) { 20 }", 10},
+
+		// Basic else-if: first condition false, second condition true
+		{"vibe (cap) { 10 } unless (noCap) { 20 }", 20},
+
+		// Multiple else-ifs: first condition true
+		{"vibe (noCap) { 10 } unless (cap) { 20 } unless (noCap) { 30 }", 10},
+
+		// Multiple else-ifs: second condition true
+		{"vibe (cap) { 10 } unless (noCap) { 20 } unless (cap) { 30 }", 20},
+
+		// Multiple else-ifs: third condition true
+		{"vibe (cap) { 10 } unless (cap) { 20 } unless (noCap) { 30 }", 30},
+
+		// No conditions true, no else clause
+		{"vibe (cap) { 10 } unless (cap) { 20 } unless (cap) { 30 }", nil},
+
+		// No conditions true, with else clause
+		{"vibe (cap) { 10 } unless (cap) { 20 } unless (cap) { 30 } nvm { 40 }", 40},
+
+		// Complex conditions with arithmetic
+		{"vibe (1 > 2) { 10 } unless (2 > 1) { 20 } unless (3 > 2) { 30 }", 20},
+
+		// Nested arithmetic in conditions
+		{"vibe (1 + 1 is 3) { 10 } unless (2 * 2 is 4) { 20 } unless (5 - 2 is 3) { 30 }", 20},
+
+		// String comparisons
+		{"vibe (\"hello\" is \"world\") { 10 } unless (\"foo\" is \"foo\") { 20 } nvm { 30 }", 20},
+
+		// Variable evaluations
+		{`
+		fr x = 5;
+		vibe (x < 3) { 10 } unless (x > 3) { 20 } unless (x is 5) { 30 } nvm { 40 }
+		`, 20},
+
+		// Complex nested example
+		{`
+		fr a = 2;
+		fr b = 3;
+		vibe (a > b) { 
+			100 
+		} unless (a + b is 5) { 
+			200 
+		} unless (a * b is 6) { 
+			300 
+		} nvm { 
+			400 
+		}
+		`, 200},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		integer, ok := tt.expected.(int)
+		if ok {
+			testIntegerObject(t, evaluated, int64(integer))
+		} else {
+			testNullObject(t, evaluated)
+		}
+	}
+}
+
 func TestReturnStatements(t *testing.T) {
 	tests := []struct {
 		input    string

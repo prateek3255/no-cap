@@ -378,11 +378,25 @@ func evalIfExpression(
 
 	if isTruthy(condition) {
 		return Eval(ie.Consequence, env)
-	} else if ie.Alternative != nil {
-		return Eval(ie.Alternative, env)
-	} else {
-		return NULL
 	}
+
+	// Check else-if conditions
+	for _, elseIf := range ie.ElseIfs {
+		condition := Eval(elseIf.Condition, env)
+		if isError(condition) {
+			return condition
+		}
+
+		if isTruthy(condition) {
+			return Eval(elseIf.Consequence, env)
+		}
+	}
+
+	// Fall back to alternative or NULL
+	if ie.Alternative != nil {
+		return Eval(ie.Alternative, env)
+	}
+	return NULL
 }
 
 func evalIdentifier(
