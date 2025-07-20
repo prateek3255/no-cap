@@ -109,6 +109,35 @@ func TestBangOperator(t *testing.T) {
 	}
 }
 
+func TestGhostedExpression(t *testing.T) {
+	tests := []struct {
+		input string
+	}{
+		{"ghosted"},
+		{"ghosted is ghosted"},
+		{"fr x = ghosted; x"},
+		{"vibe (ghosted) { 10 }"},
+		{"vibe (nah ghosted) { 10 }"},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		// For conditional expressions that would return nothing, we expect null
+		if tt.input == "vibe (ghosted) { 10 }" {
+			testNullObject(t, evaluated)
+		} else if tt.input == "vibe (nah ghosted) { 10 }" {
+			// nah ghosted should be true, so this should return 10
+			testIntegerObject(t, evaluated, 10)
+		} else if tt.input == "ghosted is ghosted" {
+			// ghosted is ghosted should be true
+			testBooleanObject(t, evaluated, true)
+		} else {
+			// All other cases should return null
+			testNullObject(t, evaluated)
+		}
+	}
+}
+
 func TestIfElseExpressions(t *testing.T) {
 	tests := []struct {
 		input    string

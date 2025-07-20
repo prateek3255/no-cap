@@ -51,6 +51,7 @@ const (
 	IN       = "IN"
 	CONTINUE = "CONTINUE"
 	BREAK    = "BREAK"
+	NULL     = "NULL"
 )
 
 type Token struct {
@@ -75,6 +76,7 @@ var keywords = map[string]TokenType{
 	"is":       EQ,
 	"aint":     NOT_EQ,
 	"nah":      BANG,
+	"ghosted":  NULL,
 }
 
 func LookupIdent(ident string) TokenType {
