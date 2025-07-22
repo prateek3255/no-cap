@@ -1,10 +1,10 @@
 package main
 
 import (
-	"monkey/evaluator"
-	"monkey/lexer"
-	"monkey/object"
-	"monkey/parser"
+	"nocap/evaluator"
+	"nocap/lexer"
+	"nocap/object"
+	"nocap/parser"
 	"syscall/js"
 )
 

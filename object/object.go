@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"hash/fnv"
-	"monkey/ast"
+	"nocap/ast"
 	"strings"
 )
 
@@ -86,7 +86,7 @@ func (b *Boolean) HashKey() HashKey {
 type Null struct{}
 
 func (n *Null) Type() ObjectType { return NULL_OBJ }
-func (n *Null) Inspect() string  { return "null" }
+func (n *Null) Inspect() string  { return "ghosted" }
 
 type ReturnValue struct {
 	Value Object
@@ -117,7 +117,7 @@ func (f *Function) Inspect() string {
 		params = append(params, p.String())
 	}
 
-	out.WriteString("fn")
+	out.WriteString("cook")
 	out.WriteString("(")
 	out.WriteString(strings.Join(params, ", "))
 	out.WriteString(") {\n")
@@ -196,9 +196,9 @@ func (h *Hash) Inspect() string {
 type Break struct{}
 
 func (b *Break) Type() ObjectType { return BREAK_OBJ }
-func (b *Break) Inspect() string  { return "break" }
+func (b *Break) Inspect() string  { return "bounce" }
 
 type Continue struct{}
 
 func (c *Continue) Type() ObjectType { return CONTINUE_OBJ }
-func (c *Continue) Inspect() string  { return "continue" }
+func (c *Continue) Inspect() string  { return "pass" }

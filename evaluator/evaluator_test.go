@@ -1,9 +1,9 @@
 package evaluator
 
 import (
-	"monkey/lexer"
-	"monkey/object"
-	"monkey/parser"
+	"nocap/lexer"
+	"nocap/object"
+	"nocap/parser"
 	"testing"
 )
 
@@ -481,24 +481,16 @@ func TestBuiltinFunctions(t *testing.T) {
 		input    string
 		expected interface{}
 	}{
-		{`len("")`, 0},
-		{`len("four")`, 4},
-		{`len("hello world")`, 11},
-		{`len(1)`, "argument to `len` not supported, got INTEGER"},
-		{`len("one", "two")`, "wrong number of arguments. got=2, want=1"},
-		{`len([1, 2, 3])`, 3},
-		{`len([])`, 0},
-		{`puts("hello", "world!")`, nil},
-		{`first([1, 2, 3])`, 1},
-		{`first([])`, nil},
-		{`first(1)`, "argument to `first` must be ARRAY, got INTEGER"},
-		{`last([1, 2, 3])`, 3},
-		{`last([])`, nil},
-		{`last(1)`, "argument to `last` must be ARRAY, got INTEGER"},
-		{`rest([1, 2, 3])`, []int{2, 3}},
-		{`rest([])`, nil},
-		{`push([], 1)`, []int{1}},
-		{`push(1, 1)`, "argument to `push` must be ARRAY, got INTEGER"},
+		{`count("")`, 0},
+		{`count("four")`, 4},
+		{`count("hello world")`, 11},
+		{`count(1)`, "argument to `count` not supported, got INTEGER"},
+		{`count("one", "two")`, "wrong number of arguments. got=2, want=1"},
+		{`count([1, 2, 3])`, 3},
+		{`count([])`, 0},
+		{`caughtIn4K("hello", "world!")`, nil},
+		{`slide([], 1)`, []int{1}},
+		{`slide(1, 1)`, "argument to `slide` must be ARRAY, got INTEGER"},
 	}
 
 	for _, tt := range tests {
@@ -730,7 +722,7 @@ func TestAssigmentError(t *testing.T) {
 		t.Fatalf("Eval didn't return Error. got=%T (%+v)", evaluated, evaluated)
 	}
 
-	expectedMessage := "identifier not found: count"
+	expectedMessage := "type mismatch: BUILTIN + INTEGER"
 	if err.Message != expectedMessage {
 		t.Fatalf("wrong error message. expected=%q, got=%q", expectedMessage, err.Message)
 	}
@@ -824,27 +816,27 @@ func TestForStatementWithRange(t *testing.T) {
 	}{
 		// Basic range test
 		{
-			`fr count = 0; stalk (i in range(1, 5)) { count = count + i; } count;`,
+			`fr count = 0; stalk (i in spread(1, 5)) { count = count + i; } count;`,
 			15, // 1 + 2 + 3 + 4 + 5 = 15
 		},
 		// Single element range
 		{
-			`fr sum = 0; stalk (i in range(5, 5)) { sum = sum + i; } sum;`,
+			`fr sum = 0; stalk (i in spread(5, 5)) { sum = sum + i; } sum;`,
 			5,
 		},
 		// Range starting from 0
 		{
-			`fr sum = 0; stalk (i in range(0, 3)) { sum = sum + i; } sum;`,
+			`fr sum = 0; stalk (i in spread(0, 3)) { sum = sum + i; } sum;`,
 			6, // 0 + 1 + 2 + 3 = 6
 		},
 		// Using range with break
 		{
-			`fr sum = 0; stalk (i in range(1, 10)) { vibe (i > 3) { bounce; } sum = sum + i; } sum;`,
+			`fr sum = 0; stalk (i in spread(1, 10)) { vibe (i > 3) { bounce; } sum = sum + i; } sum;`,
 			6, // 1 + 2 + 3 = 6
 		},
 		// Using range with continue
 		{
-			`fr sum = 0; stalk (i in range(1, 5)) { vibe (i is 3) { pass; } sum = sum + i; } sum;`,
+			`fr sum = 0; stalk (i in spread(1, 5)) { vibe (i is 3) { pass; } sum = sum + i; } sum;`,
 			12, // 1 + 2 + 4 + 5 = 12
 		},
 	}
@@ -974,42 +966,42 @@ func TestForStatementWithStringRange(t *testing.T) {
 	}{
 		// Basic string range - concatenate all characters
 		{
-			`fr result = ""; stalk (char in range("hello")) { result = result + char; } result;`,
+			`fr result = ""; stalk (char in spread("hello")) { result = result + char; } result;`,
 			"hello",
 		},
 		// String range with single character
 		{
-			`fr result = ""; stalk (char in range("a")) { result = result + char; } result;`,
+			`fr result = ""; stalk (char in spread("a")) { result = result + char; } result;`,
 			"a",
 		},
 		// Empty string range
 		{
-			`fr result = ""; stalk (char in range("")) { result = result + char; } result;`,
+			`fr result = ""; stalk (char in spread("")) { result = result + char; } result;`,
 			"",
 		},
 		// String range with special characters
 		{
-			`fr result = ""; stalk (char in range("a!@")) { result = result + char; } result;`,
+			`fr result = ""; stalk (char in spread("a!@")) { result = result + char; } result;`,
 			"a!@",
 		},
 		// Count characters in string using range
 		{
-			`fr count = 0; stalk (char in range("test")) { count = count + 1; } count;`,
+			`fr count = 0; stalk (char in spread("test")) { count = count + 1; } count;`,
 			4,
 		},
 		// String range with break
 		{
-			`fr result = ""; stalk (char in range("hello")) { vibe (char is "l") { bounce; } result = result + char; } result;`,
+			`fr result = ""; stalk (char in spread("hello")) { vibe (char is "l") { bounce; } result = result + char; } result;`,
 			"he",
 		},
 		// String range with continue
 		{
-			`fr result = ""; stalk (char in range("hello")) { vibe (char is "l") { pass; } result = result + char; } result;`,
+			`fr result = ""; stalk (char in spread("hello")) { vibe (char is "l") { pass; } result = result + char; } result;`,
 			"heo",
 		},
 		// Using string range to find specific character
 		{
-			`fr found = 0; stalk (char in range("monkey")) { vibe (char is "k") { found = 1; bounce; } } found;`,
+			`fr found = 0; stalk (char in spread("monkey")) { vibe (char is "k") { found = 1; bounce; } } found;`,
 			1,
 		},
 	}
@@ -1250,7 +1242,7 @@ func TestIndexExpressionAssignmentWithDifferentTypes(t *testing.T) {
 			true,
 		},
 		{
-			`fr arr = [1, 2, 3]; arr[3] = [4, 5, 6]; len(arr[3]);`,
+			`fr arr = [1, 2, 3]; arr[3] = [4, 5, 6]; count(arr[3]);`,
 			3,
 		},
 		{
@@ -1271,7 +1263,7 @@ func TestIndexExpressionAssignmentWithDifferentTypes(t *testing.T) {
 			false,
 		},
 		{
-			`fr hash = {}; hash["array"] = [1, 2, 3]; len(hash["array"]);`,
+			`fr hash = {}; hash["array"] = [1, 2, 3]; count(hash["array"]);`,
 			3,
 		},
 		{
