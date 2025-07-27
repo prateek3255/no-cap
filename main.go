@@ -36,6 +36,14 @@ func ExecuteNoCap() js.Func {
 			return string(jsonString)
 		}
 
+		// Single panic recovery for the entire function
+		defer func() {
+			if r := recover(); r != nil {
+				// Return error through output function
+				output(nil, []string{"This is awkward... something went very wrong and it's not your fault 😬!"}, []string{})
+			}
+		}()
+
 		if len(args) != 1 {
 			return output(nil, []string{"Invalid number of arguments. Expected 1 argument."}, []string{})
 		}

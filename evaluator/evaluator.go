@@ -57,7 +57,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 
 		if item.Type() != object.ARRAY_OBJ && item.Type() != object.HASH_OBJ {
-			return newError("index expression assignment not supported for type %s", item.Type())
+			return newError("seriously what are you trying to do here? [] can't be used with items of type %s 🙄", item.Type())
 		}
 
 		index := Eval(node.Left.Index, env)
@@ -180,9 +180,9 @@ func evalProgram(program *ast.Program, env *object.Environment) object.Object {
 		case *object.ReturnValue:
 			return result.Value
 		case *object.Break:
-			return newError("break statement cannot be used outside of loop")
+			return newError("hey! you can't just bounce outside of a loop 🫠")
 		case *object.Continue:
-			return newError("continue statement cannot be used outside of loop")
+			return newError("hey! you can't just pass outside of a loop 🫠")
 		case *object.Error:
 			return result
 		}
@@ -225,7 +225,7 @@ func evalPrefixExpression(operator string, right object.Object) object.Object {
 	case "-":
 		return evalMinusPrefixOperatorExpression(right)
 	default:
-		return newError("unknown operator: %s%s", operator, right.Type())
+		return newError("what the hell is this? %s%s 🐘🐧", operator, right.Type())
 	}
 }
 
@@ -245,11 +245,11 @@ func evalInfixExpression(
 	case operator == "aint":
 		return nativeBoolToBooleanObject(left != right)
 	case left.Type() != right.Type():
-		return newError("type mismatch: %s %s %s",
-			left.Type(), operator, right.Type())
+		return newError("what the hell is %s supposed to do between a %s and a %s 😬",
+			operator, left.Type(), right.Type())
 	default:
-		return newError("unknown operator: %s %s %s",
-			left.Type(), operator, right.Type())
+		return newError("idk how to %s a %s with a %s 😬",
+			operator, left.Type(), right.Type())
 	}
 }
 
@@ -275,7 +275,7 @@ func evalMinusPrefixOperatorExpression(right object.Object) object.Object {
 		value := right.(*object.Float).Value
 		return &object.Float{Value: -value}
 	default:
-		return newError("unknown operator: -%s", right.Type())
+		return newError("idk how to: -%s 😬", right.Type())
 	}
 }
 
@@ -294,6 +294,9 @@ func evalIntegerInfixExpression(
 	case "*":
 		return &object.Integer{Value: leftVal * rightVal}
 	case "/":
+		if rightVal == 0 {
+			return newError("my math teacher said no dividing by zero! 😤")
+		}
 		return &object.Integer{Value: leftVal / rightVal}
 	case "<":
 		return nativeBoolToBooleanObject(leftVal < rightVal)
@@ -304,8 +307,8 @@ func evalIntegerInfixExpression(
 	case "aint":
 		return nativeBoolToBooleanObject(leftVal != rightVal)
 	default:
-		return newError("unknown operator: %s %s %s",
-			left.Type(), operator, right.Type())
+		return newError("idk how to %s a %s with a %s 😬",
+			operator, left.Type(), right.Type())
 	}
 }
 
@@ -335,6 +338,10 @@ func evalFloatInfixExpression(
 	case "*":
 		return &object.Float{Value: leftVal * rightVal}
 	case "/":
+		if rightVal == 0 {
+			return newError("my math teacher said no dividing by zero! 😤")
+		}
+
 		return &object.Float{Value: leftVal / rightVal}
 	case "<":
 		return nativeBoolToBooleanObject(leftVal < rightVal)
@@ -345,8 +352,8 @@ func evalFloatInfixExpression(
 	case "aint":
 		return nativeBoolToBooleanObject(leftVal != rightVal)
 	default:
-		return newError("unknown operator: %s %s %s",
-			left.Type(), operator, right.Type())
+		return newError("idk how to %s a %s with a %s 😬",
+			operator, left.Type(), right.Type())
 	}
 }
 
@@ -365,8 +372,8 @@ func evalStringInfixExpression(
 	case "aint":
 		return nativeBoolToBooleanObject(leftVal != rightVal)
 	default:
-		return newError("unknown operator: %s %s %s",
-			left.Type(), operator, right.Type())
+		return newError("idk how to %s a %s with a %s 😬",
+			operator, left.Type(), right.Type())
 	}
 }
 
@@ -414,7 +421,7 @@ func evalIdentifier(
 		return builtin
 	}
 
-	return newError("identifier not found: %s", node.Value)
+	return newError("%s? Never heard of them 🤷‍♀️", node.Value)
 }
 
 func isTruthy(obj object.Object) bool {
@@ -470,7 +477,7 @@ func applyFunction(fn object.Object, args []object.Object, env *object.Environme
 		return applyBuiltIn(fn, args, env)
 
 	default:
-		return newError("not a function: %s", fn.Type())
+		return newError("%s can't be cooked! 😭", fn.Type())
 	}
 }
 
@@ -521,7 +528,10 @@ func evalIndexExpression(left, index object.Object) object.Object {
 	case left.Type() == object.HASH_OBJ:
 		return evalHashIndexExpression(left, index)
 	default:
-		return newError("index operator not supported: %s", left.Type())
+		if left.Type() == object.ARRAY_OBJ {
+			return newError("hey you can only use [] with whole numbers, %s aint it", index.Type())
+		}
+		return newError("you can't use [] with %s 🤷‍♂️", left.Type())
 	}
 }
 
@@ -533,27 +543,27 @@ func evalIndexExpressionAssignmentStatement(item, index, value object.Object) ob
 		max := int64(len(arr.Elements))
 
 		if idx < 1 || idx > max {
-			return newError("index out of bounds: %d", idx)
+			return newError("this array only goes from 1-%d, but you tried to grab %d - that's way off! 📏", max, idx)
 		}
 
 		arr.Elements[idx-1] = value
 		return NULL
 
 	case item.Type() == object.ARRAY_OBJ && index.Type() != object.INTEGER_OBJ:
-		return newError("index out of bounds: 0") // Non-integer index for array
+		return newError("hey you can only use [] with whole numbers, %s aint it", index.Type())
 
 	case item.Type() == object.HASH_OBJ:
 		hashObject := item.(*object.Hash)
 		key, ok := index.(object.Hashable)
 		if !ok {
-			return newError("unusable as hash key: %s", index.Type())
+			return newError("%s cannot be used as a hash key - try something more primitive 🔑", index.Type())
 		}
 
 		hashObject.Pairs[key.HashKey()] = object.HashPair{Key: index, Value: value}
 		return NULL
 
 	default:
-		return newError("index operator not supported: %s", item.Type())
+		return newError("you can't use [] with %s 🤷‍♂️", item.Type())
 	}
 }
 
@@ -583,7 +593,7 @@ func evalHashLiteral(
 
 		hashKey, ok := key.(object.Hashable)
 		if !ok {
-			return newError("unusable as hash key: %s", key.Type())
+			return newError("%s cannot be used as a hash key - try something more primitive 🔑", key.Type())
 		}
 
 		value := Eval(valueNode, env)
@@ -603,7 +613,7 @@ func evalHashIndexExpression(hash, index object.Object) object.Object {
 
 	key, ok := index.(object.Hashable)
 	if !ok {
-		return newError("unusable as hash key: %s", index.Type())
+		return newError("%s cannot be used as a hash key - try something more primitive 🔑", index.Type())
 	}
 
 	pair, ok := hashObject.Pairs[key.HashKey()]
@@ -621,7 +631,7 @@ func evalForStatement(node *ast.ForStatement, env *object.Environment) object.Ob
 	}
 
 	if items.Type() != object.ARRAY_OBJ && items.Type() != object.HASH_OBJ {
-		return newError("unusable as an iterator for the loop: %s", items.Type())
+		return newError("%s can't be looped over - try something iterable like an array, string or a hash 🌀", items.Type())
 	}
 
 	var elements []object.Object

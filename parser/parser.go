@@ -121,13 +121,13 @@ func (p *Parser) Errors() []string {
 }
 
 func (p *Parser) peekError(t token.TokenType) {
-	msg := fmt.Sprintf("expected next token to be %s, got %s instead",
+	msg := fmt.Sprintf("bruh I needed %s, why did you hit me with %s instead 🤦‍♀️",
 		t, p.peekToken.Type)
 	p.errors = append(p.errors, msg)
 }
 
 func (p *Parser) noPrefixParseFnError(t token.TokenType) {
-	msg := fmt.Sprintf("no prefix parse function for %s found", t)
+	msg := fmt.Sprintf("you can't lead with %s - that's not how you begin things! 🤷‍♀️", t)
 	p.errors = append(p.errors, msg)
 }
 
@@ -405,7 +405,7 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 
 	value, err := strconv.ParseInt(p.curToken.Literal, 0, 64)
 	if err != nil {
-		msg := fmt.Sprintf("could not parse %q as integer", p.curToken.Literal)
+		msg := fmt.Sprintf("i was expecting a 64 bit integer but wtf is this: %q 🤮", p.curToken.Literal)
 		p.errors = append(p.errors, msg)
 		return nil
 	}
@@ -420,7 +420,7 @@ func (p *Parser) parseFloatLiteral() ast.Expression {
 
 	value, err := strconv.ParseFloat(p.curToken.Literal, 64)
 	if err != nil {
-		msg := fmt.Sprintf("could not parse %q as float", p.curToken.Literal)
+		msg := fmt.Sprintf("i was expecting a 64 bit float but wtf is this: %q 🤮", p.curToken.Literal)
 		p.errors = append(p.errors, msg)
 		return nil
 	}

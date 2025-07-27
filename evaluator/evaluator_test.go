@@ -287,35 +287,35 @@ func TestErrorHandling(t *testing.T) {
 	}{
 		{
 			"5 + noCap;",
-			"type mismatch: INTEGER + BOOLEAN",
+			"what the hell is + supposed to do between a INTEGER and a BOOLEAN 😬",
 		},
 		{
 			"5 + noCap; 5;",
-			"type mismatch: INTEGER + BOOLEAN",
+			"what the hell is + supposed to do between a INTEGER and a BOOLEAN 😬",
 		},
 		{
 			"-noCap",
-			"unknown operator: -BOOLEAN",
+			"idk how to: -BOOLEAN 😬",
 		},
 		{
 			"noCap + cap;",
-			"unknown operator: BOOLEAN + BOOLEAN",
+			"idk how to + a BOOLEAN with a BOOLEAN 😬",
 		},
 		{
 			"noCap + cap + noCap + cap;",
-			"unknown operator: BOOLEAN + BOOLEAN",
+			"idk how to + a BOOLEAN with a BOOLEAN 😬",
 		},
 		{
 			"5; noCap + cap; 5",
-			"unknown operator: BOOLEAN + BOOLEAN",
+			"idk how to + a BOOLEAN with a BOOLEAN 😬",
 		},
 		{
 			`"Hello" - "World"`,
-			"unknown operator: STRING - STRING",
+			"idk how to - a STRING with a STRING 😬",
 		},
 		{
 			"vibe (10 > 1) { noCap + cap; }",
-			"unknown operator: BOOLEAN + BOOLEAN",
+			"idk how to + a BOOLEAN with a BOOLEAN 😬",
 		},
 		{
 			`
@@ -327,19 +327,19 @@ vibe (10 > 1) {
   yeet 1;
 }
 `,
-			"unknown operator: BOOLEAN + BOOLEAN",
+			"idk how to + a BOOLEAN with a BOOLEAN 😬",
 		},
 		{
 			"foobar",
-			"identifier not found: foobar",
+			"foobar? Never heard of them 🤷‍♀️",
 		},
 		{
 			`{"name": "Monkey"}[cook(x) { x }];`,
-			"unusable as hash key: FUNCTION",
+			"FUNCTION cannot be used as a hash key - try something more primitive 🔑",
 		},
 		{
 			`999[1]`,
-			"index operator not supported: INTEGER",
+			"you can't use [] with INTEGER 🤷‍♂️",
 		},
 	}
 
@@ -484,13 +484,13 @@ func TestBuiltinFunctions(t *testing.T) {
 		{`count("")`, 0},
 		{`count("four")`, 4},
 		{`count("hello world")`, 11},
-		{`count(1)`, "argument to `count` not supported, got INTEGER"},
-		{`count("one", "two")`, "wrong number of arguments. got=2, want=1"},
+		{`count(1)`, "count can only be used with arrays, strings, or hashes, not INTEGER 🙄"},
+		{`count("one", "two")`, "count needs 1 argument but you gave it 2 🥲"},
 		{`count([1, 2, 3])`, 3},
 		{`count([])`, 0},
 		{`caughtIn4K("hello", "world!")`, nil},
 		{`slide([], 1)`, []int{1}},
-		{`slide(1, 1)`, "argument to `slide` must be ARRAY, got INTEGER"},
+		{`slide(1, 1)`, "slide needs an array to work with, not INTEGER - can't slide on that! 🛝"},
 	}
 
 	for _, tt := range tests {
@@ -722,7 +722,7 @@ func TestAssigmentError(t *testing.T) {
 		t.Fatalf("Eval didn't return Error. got=%T (%+v)", evaluated, evaluated)
 	}
 
-	expectedMessage := "type mismatch: BUILTIN + INTEGER"
+	expectedMessage := "what the hell is + supposed to do between a BUILTIN and a INTEGER 😬"
 	if err.Message != expectedMessage {
 		t.Fatalf("wrong error message. expected=%q, got=%q", expectedMessage, err.Message)
 	}
@@ -922,27 +922,27 @@ func TestBreakAndContinueOutsideLoopScenarios(t *testing.T) {
 	}{
 		{
 			input:    `bounce;`,
-			expected: "break statement cannot be used outside of loop",
+			expected: "hey! you can't just bounce outside of a loop 🫠",
 		},
 		{
 			input:    `pass;`,
-			expected: "continue statement cannot be used outside of loop",
+			expected: "hey! you can't just pass outside of a loop 🫠",
 		},
 		{
 			input:    `vibe (noCap) { bounce; }`,
-			expected: "break statement cannot be used outside of loop",
+			expected: "hey! you can't just bounce outside of a loop 🫠",
 		},
 		{
 			input:    `vibe (noCap) { pass; }`,
-			expected: "continue statement cannot be used outside of loop",
+			expected: "hey! you can't just pass outside of a loop 🫠",
 		},
 		{
 			input:    `fr f = cook() { bounce; }; f();`,
-			expected: "break statement cannot be used outside of loop",
+			expected: "hey! you can't just bounce outside of a loop 🫠",
 		},
 		{
 			input:    `fr f = cook() { pass; }; f();`,
-			expected: "continue statement cannot be used outside of loop",
+			expected: "hey! you can't just pass outside of a loop 🫠",
 		},
 	}
 
@@ -1167,47 +1167,47 @@ func TestIndexExpressionAssignmentErrors(t *testing.T) {
 		// Array index out of bounds
 		{
 			`fr arr = [1, 2, 3]; arr[5] = 10;`,
-			"index out of bounds: 5",
+			"this array only goes from 1-3, but you tried to grab 5 - that's way off! 📏",
 		},
 		{
 			`fr arr = [1, 2, 3]; arr[-1] = 10;`,
-			"index out of bounds: -1",
+			"this array only goes from 1-3, but you tried to grab -1 - that's way off! 📏",
 		},
 		// Invalid types for index assignment
 		{
 			`fr num = 42; num[0] = 10;`,
-			"index expression assignment not supported for type INTEGER",
+			"seriously what are you trying to do here? [] can't be used with items of type INTEGER 🙄",
 		},
 		{
 			`fr str = "hello"; str[0] = "H";`,
-			"index expression assignment not supported for type STRING",
+			"seriously what are you trying to do here? [] can't be used with items of type STRING 🙄",
 		},
 		{
 			`fr fn = cook(x) { x }; fn[0] = 10;`,
-			"index expression assignment not supported for type FUNCTION",
+			"seriously what are you trying to do here? [] can't be used with items of type FUNCTION 🙄",
 		},
 		// Invalid array index type
 		{
 			`fr arr = [1, 2, 3]; arr["invalid"] = 10;`,
-			"index out of bounds: 0", // This might need adjustment based on actual implementation
+			"hey you can only use [] with whole numbers, STRING aint it",
 		},
 		// Invalid hash key type
 		{
 			`fr hash = {}; hash[cook(x) { x }] = 10;`,
-			"unusable as hash key: FUNCTION",
+			"FUNCTION cannot be used as a hash key - try something more primitive 🔑",
 		},
 		{
 			`fr hash = {}; hash[[1, 2, 3]] = 10;`,
-			"unusable as hash key: ARRAY",
+			"ARRAY cannot be used as a hash key - try something more primitive 🔑",
 		},
 		// Assignment to non-existent nested structure
 		{
 			`fr arr = [1, 2, 3]; arr[1]["key"] = 10;`,
-			"index expression assignment not supported for type INTEGER",
+			"seriously what are you trying to do here? [] can't be used with items of type INTEGER 🙄",
 		},
 		{
 			`fr hash = {"a": 1}; hash["a"][1] = 10;`,
-			"index expression assignment not supported for type INTEGER",
+			"seriously what are you trying to do here? [] can't be used with items of type INTEGER 🙄",
 		},
 	}
 
