@@ -1335,6 +1335,102 @@ func TestIndexExpressionAssignmentInLoops(t *testing.T) {
 	}
 }
 
+func TestCaughtIn4KLogging(t *testing.T) {
+	tests := []struct {
+		input        string
+		expectedLogs []string
+		description  string
+	}{
+		{
+			input:        `caughtIn4K("Hello", "World");`,
+			expectedLogs: []string{"Hello", "World"},
+			description:  "Basic logging with multiple string arguments",
+		},
+		{
+			input:        `caughtIn4K(42, noCap, "test");`,
+			expectedLogs: []string{"42", "true", "test"},
+			description:  "Logging with mixed types (integer, boolean, string)",
+		},
+		{
+			input: `
+				fr x = 10;
+				fr y = "debug";
+				caughtIn4K("Variable x:", x, "Variable y:", y);
+			`,
+			expectedLogs: []string{"Variable x:", "10", "Variable y:", "debug"},
+			description:  "Logging with variables",
+		},
+		{
+			input: `
+				fr arr = [1, 2, 3];
+				caughtIn4K("Array:", arr);
+			`,
+			expectedLogs: []string{"Array:", "[1, 2, 3]"},
+			description:  "Logging with array",
+		},
+		{
+			input: `
+				fr hash = {"key": "value", "num": 42};
+				caughtIn4K("Hash:", hash);
+			`,
+			expectedLogs: []string{"Hash:", `{key: value, num: 42}`},
+			description:  "Logging with hash",
+		},
+		{
+			input: `
+				fr logger = cook(msg, value) {
+					caughtIn4K("Function log:", msg, value);
+				};
+				logger("test message", 123);
+			`,
+			expectedLogs: []string{"Function log:", "test message", "123"},
+			description:  "Logging from within a function",
+		},
+		{
+			input: `
+				fr x = 1;
+				caughtIn4K("First log:", x);
+				x = x + 1;
+				caughtIn4K("Second log:", x);
+				fr nested = cook() {
+					caughtIn4K("Nested function log:", x * 2);
+				};
+				nested();
+			`,
+			expectedLogs: []string{"First log:", "1", "Second log:", "2", "Nested function log:", "4"},
+			description:  "Multiple logging calls including from nested function",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			// Create a new environment and evaluate the input to capture logs
+			env := object.NewEnvironment()
+			l := lexer.New(tt.input)
+			p := parser.New(l)
+			program := p.ParseProgram()
+
+			if len(p.Errors()) != 0 {
+				t.Fatalf("Parser errors: %v", p.Errors())
+			}
+
+			Eval(program, env)
+
+			if len(env.Logs) != len(tt.expectedLogs) {
+				t.Errorf("Expected %d logs, got %d. Logs: %v",
+					len(tt.expectedLogs), len(env.Logs), env.Logs)
+				return
+			}
+
+			for i, expectedLog := range tt.expectedLogs {
+				if env.Logs[i] != expectedLog {
+					t.Errorf("Log %d: expected %q, got %q", i, expectedLog, env.Logs[i])
+				}
+			}
+		})
+	}
+}
+
 func testEval(input string) object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)

@@ -1,7 +1,6 @@
 package evaluator
 
 import (
-	"fmt"
 	"nocap/object"
 )
 
@@ -24,15 +23,17 @@ var builtins = map[string]*object.Builtin{
 				args[0].Type())
 		}
 	},
+		Name: "count",
 	},
 	"caughtIn4K": &object.Builtin{
 		Fn: func(args ...object.Object) object.Object {
-			for _, arg := range args {
-				fmt.Println(arg.Inspect())
-			}
+			logs := &object.Array{}
 
-			return NULL
+			logs.Elements = append(logs.Elements, args...)
+
+			return logs
 		},
+		Name: "caughtIn4K",
 	},
 	"slide": &object.Builtin{
 		Fn: func(args ...object.Object) object.Object {
@@ -54,6 +55,7 @@ var builtins = map[string]*object.Builtin{
 
 			return &object.Array{Elements: newElements}
 		},
+		Name: "slide",
 	},
 	"spread": &object.Builtin{
 		Fn: func(args ...object.Object) object.Object {
@@ -98,5 +100,6 @@ var builtins = map[string]*object.Builtin{
 
 			return &object.Array{Elements: elements}
 		},
+		Name: "spread",
 	},
 }

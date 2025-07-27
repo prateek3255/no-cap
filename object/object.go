@@ -141,11 +141,12 @@ func (s *String) HashKey() HashKey {
 }
 
 type Builtin struct {
-	Fn BuiltinFunction
+	Fn   BuiltinFunction
+	Name string
 }
 
 func (b *Builtin) Type() ObjectType { return BUILTIN_OBJ }
-func (b *Builtin) Inspect() string  { return "builtin function" }
+func (b *Builtin) Inspect() string  { return fmt.Sprintf("%s built in function", b.Name) }
 
 type Array struct {
 	Elements []Object

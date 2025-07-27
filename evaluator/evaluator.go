@@ -142,7 +142,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return args[0]
 		}
 
-		return applyFunction(function, args)
+		return applyFunction(function, args, env)
 
 	case *ast.ArrayLiteral:
 		elements := evalExpressions(node.Elements, env)
@@ -458,7 +458,7 @@ func evalExpressions(
 	return result
 }
 
-func applyFunction(fn object.Object, args []object.Object) object.Object {
+func applyFunction(fn object.Object, args []object.Object, env *object.Environment) object.Object {
 	switch fn := fn.(type) {
 
 	case *object.Function:
@@ -467,11 +467,30 @@ func applyFunction(fn object.Object, args []object.Object) object.Object {
 		return unwrapReturnValue(evaluated)
 
 	case *object.Builtin:
-		return fn.Fn(args...)
+		return applyBuiltIn(fn, args, env)
 
 	default:
 		return newError("not a function: %s", fn.Type())
 	}
+}
+
+func applyBuiltIn(fn *object.Builtin, args []object.Object, env *object.Environment) object.Object {
+	if fn.Name == "caughtIn4K" {
+		l := fn.Fn(args...)
+
+		logs, ok := l.(*object.Array)
+		if !ok {
+			return l
+		}
+
+		for _, log := range logs.Elements {
+			env.AddLogs(log.Inspect())
+		}
+
+		return NULL
+	}
+
+	return fn.Fn(args...)
 }
 
 func extendFunctionEnv(

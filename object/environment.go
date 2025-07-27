@@ -16,6 +16,7 @@ func NewEnvironment() *Environment {
 type Environment struct {
 	store map[string]Object
 	outer *Environment
+	Logs  []string
 }
 
 func (e *Environment) Get(name string) (Object, bool) {
@@ -43,4 +44,12 @@ func (e *Environment) Update(name string, val Object) Object {
 	}
 
 	return &Error{Message: fmt.Sprintf("identifier not found: %q", name)}
+}
+
+func (e *Environment) AddLogs(log string) {
+	if e.outer != nil {
+		e.outer.AddLogs(log)
+	} else {
+		e.Logs = append(e.Logs, log)
+	}
 }

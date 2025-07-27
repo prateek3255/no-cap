@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"nocap/evaluator"
 	"nocap/lexer"
 	"nocap/object"
@@ -15,8 +16,28 @@ func main() {
 
 func ExecuteNoCap() js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) any {
+		output := func(result *string, errors []string, logs []string) string {
+			var resultValue any
+			if result != nil {
+				resultValue = *result
+			}
+
+			x := map[string]any{
+				"result": resultValue,
+				"errors": errors,
+				"logs":   logs,
+			}
+
+			jsonString, err := json.Marshal(x)
+			if err != nil {
+				return "Something went wrong"
+			}
+
+			return string(jsonString)
+		}
+
 		if len(args) != 1 {
-			return "Invalid number of arguments. Expected 1 argument."
+			return output(nil, []string{"Invalid number of arguments. Expected 1 argument."}, []string{})
 		}
 
 		input := args[0].String()
@@ -30,14 +51,23 @@ func ExecuteNoCap() js.Func {
 			for _, msg := range p.Errors() {
 				errors = append(errors, msg)
 			}
-			return errors
+
+			return output(nil, errors, []string{})
 		}
 
 		evaluated := evaluator.Eval(program, env)
 		if evaluated != nil {
-			return evaluated.Inspect()
+			switch res := evaluated.(type) {
+			case *object.Error:
+				return output(nil, []string{res.Inspect()}, env.Logs)
+			case *object.Null:
+				return output(nil, []string{}, env.Logs)
+			default:
+				result := evaluated.Inspect()
+				return output(&result, []string{}, env.Logs)
+			}
 		} else {
-			return "Evaluation returned nil."
+			return output(nil, []string{}, env.Logs)
 		}
 	})
 }
