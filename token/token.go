@@ -3,14 +3,14 @@ package token
 type TokenType string
 
 const (
-	ILLEGAL = "ILLEGAL"
+	ILLEGAL = "illegal"
 	EOF     = "EOF"
 
 	// Identifiers + literals
-	IDENT  = "IDENT"  // add, foobar, x, y, ...
-	INT    = "INT"    // 1343456
-	FLOAT  = "FLOAT"  // 1.3456
-	STRING = "STRING" // "foobar"
+	IDENT  = "identifier" // add, foobar, x, y, ...
+	INT    = "integer"    // 1343456
+	FLOAT  = "float"      // 1.3456
+	STRING = "string"     // "foobar"
 
 	// Operators
 	ASSIGN   = "="

@@ -287,35 +287,35 @@ func TestErrorHandling(t *testing.T) {
 	}{
 		{
 			"5 + noCap;",
-			"what the hell is + supposed to do between a INTEGER and a BOOLEAN 😬",
+			"what the hell is + supposed to do between a integer and a boolean 😬",
 		},
 		{
 			"5 + noCap; 5;",
-			"what the hell is + supposed to do between a INTEGER and a BOOLEAN 😬",
+			"what the hell is + supposed to do between a integer and a boolean 😬",
 		},
 		{
 			"-noCap",
-			"idk how to: -BOOLEAN 😬",
+			"idk how to: -boolean 😬",
 		},
 		{
 			"noCap + cap;",
-			"idk how to + a BOOLEAN with a BOOLEAN 😬",
+			"idk how to + a boolean with a boolean 😬",
 		},
 		{
 			"noCap + cap + noCap + cap;",
-			"idk how to + a BOOLEAN with a BOOLEAN 😬",
+			"idk how to + a boolean with a boolean 😬",
 		},
 		{
 			"5; noCap + cap; 5",
-			"idk how to + a BOOLEAN with a BOOLEAN 😬",
+			"idk how to + a boolean with a boolean 😬",
 		},
 		{
 			`"Hello" - "World"`,
-			"idk how to - a STRING with a STRING 😬",
+			"idk how to - a string with a string 😬",
 		},
 		{
 			"vibe (10 > 1) { noCap + cap; }",
-			"idk how to + a BOOLEAN with a BOOLEAN 😬",
+			"idk how to + a boolean with a boolean 😬",
 		},
 		{
 			`
@@ -327,7 +327,7 @@ vibe (10 > 1) {
   yeet 1;
 }
 `,
-			"idk how to + a BOOLEAN with a BOOLEAN 😬",
+			"idk how to + a boolean with a boolean 😬",
 		},
 		{
 			"foobar",
@@ -335,11 +335,11 @@ vibe (10 > 1) {
 		},
 		{
 			`{"name": "Monkey"}[cook(x) { x }];`,
-			"FUNCTION cannot be used as a hash key - try something more primitive 🔑",
+			"function cannot be used as a hash key - try something more primitive 🔑",
 		},
 		{
 			`999[1]`,
-			"you can't use [] with INTEGER 🤷‍♂️",
+			"you can't use [] with integer 🤷‍♂️",
 		},
 	}
 
@@ -486,13 +486,13 @@ func TestBuiltinFunctions(t *testing.T) {
 		{`count("")`, 0},
 		{`count("four")`, 4},
 		{`count("hello world")`, 11},
-		{`count(1)`, "count can only be used with arrays, strings, or hashes, not INTEGER 🙄"},
+		{`count(1)`, "count can only be used with arrays, strings, or hashes, not integer 🙄"},
 		{`count("one", "two")`, "count needs 1 argument but you gave it 2 🥲"},
 		{`count([1, 2, 3])`, 3},
 		{`count([])`, 0},
 		{`caughtIn4K("hello", "world!")`, nil},
 		{`slide([], 1)`, []int{1}},
-		{`slide(1, 1)`, "slide needs an array to work with, not INTEGER - can't slide on that! 🛝"},
+		{`slide(1, 1)`, "slide needs an array to work with, not integer - can't slide on that! 🛝"},
 	}
 
 	for _, tt := range tests {
@@ -724,7 +724,7 @@ func TestAssigmentError(t *testing.T) {
 		t.Fatalf("Eval didn't return Error. got=%T (%+v)", evaluated, evaluated)
 	}
 
-	expectedMessage := "what the hell is + supposed to do between a BUILTIN and a INTEGER 😬"
+	expectedMessage := "what the hell is + supposed to do between a builtin function and a integer 😬"
 	if err.Message != expectedMessage {
 		t.Fatalf("wrong error message. expected=%q, got=%q", expectedMessage, err.Message)
 	}
@@ -1178,38 +1178,38 @@ func TestIndexExpressionAssignmentErrors(t *testing.T) {
 		// Invalid types for index assignment
 		{
 			`fr num = 42; num[0] = 10;`,
-			"seriously what are you trying to do here? [] can't be used with items of type INTEGER 🙄",
+			"seriously what are you trying to do here? [] can't be used with items of type integer 🙄",
 		},
 		{
 			`fr str = "hello"; str[0] = "H";`,
-			"seriously what are you trying to do here? [] can't be used with items of type STRING 🙄",
+			"seriously what are you trying to do here? [] can't be used with items of type string 🙄",
 		},
 		{
 			`fr fn = cook(x) { x }; fn[0] = 10;`,
-			"seriously what are you trying to do here? [] can't be used with items of type FUNCTION 🙄",
+			"seriously what are you trying to do here? [] can't be used with items of type function 🙄",
 		},
 		// Invalid array index type
 		{
 			`fr arr = [1, 2, 3]; arr["invalid"] = 10;`,
-			"hey you can only use [] with whole numbers, STRING aint it",
+			"hey you can only use [] with whole numbers, string aint it",
 		},
 		// Invalid hash key type
 		{
 			`fr hash = {}; hash[cook(x) { x }] = 10;`,
-			"FUNCTION cannot be used as a hash key - try something more primitive 🔑",
+			"function cannot be used as a hash key - try something more primitive 🔑",
 		},
 		{
 			`fr hash = {}; hash[[1, 2, 3]] = 10;`,
-			"ARRAY cannot be used as a hash key - try something more primitive 🔑",
+			"array cannot be used as a hash key - try something more primitive 🔑",
 		},
 		// Assignment to non-existent nested structure
 		{
 			`fr arr = [1, 2, 3]; arr[1]["key"] = 10;`,
-			"seriously what are you trying to do here? [] can't be used with items of type INTEGER 🙄",
+			"seriously what are you trying to do here? [] can't be used with items of type integer 🙄",
 		},
 		{
 			`fr hash = {"a": 1}; hash["a"][1] = 10;`,
-			"seriously what are you trying to do here? [] can't be used with items of type INTEGER 🙄",
+			"seriously what are you trying to do here? [] can't be used with items of type integer 🙄",
 		},
 	}
 
