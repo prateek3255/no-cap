@@ -341,6 +341,14 @@ vibe (10 > 1) {
 			`999[1]`,
 			"you can't use [] with integer 🤷‍♂️",
 		},
+		{
+			`cook(x) { x }(1, 2)`,
+			"expected 1 arguments, but got 2 - you sure you know what you're doing? 🤔",
+		},
+		{
+			`[1, 2, 3][4]`,
+			"this array only goes from 1-3, but you tried to grab 4 - that's way off! 📏",
+		},
 	}
 
 	for _, tt := range tests {
@@ -589,14 +597,6 @@ func TestArrayIndexExpressions(t *testing.T) {
 		{
 			"fr myArray = [1, 2, 3]; fr i = myArray[1]; myArray[i]",
 			1,
-		},
-		{
-			"[1, 2, 3][4]",
-			nil,
-		},
-		{
-			"[1, 2, 3][-1]",
-			nil,
 		},
 	}
 

@@ -476,6 +476,11 @@ func applyFunction(fn object.Object, args []object.Object, env *object.Environme
 	switch fn := fn.(type) {
 
 	case *object.Function:
+		if len(fn.Parameters) != len(args) {
+			return newError("expected %d arguments, but got %d - you sure you know what you're doing? 🤔",
+				len(fn.Parameters), len(args))
+		}
+
 		extendedEnv := extendFunctionEnv(fn, args)
 		evaluated := Eval(fn.Body, extendedEnv)
 		return unwrapReturnValue(evaluated)
@@ -580,7 +585,7 @@ func evalArrayIndexExpression(array, index object.Object) object.Object {
 	max := int64(len(arrayObject.Elements))
 
 	if idx < 1 || idx > max {
-		return NULL
+		return newError("this array only goes from 1-%d, but you tried to grab %d - that's way off! 📏", max, idx)
 	}
 
 	return arrayObject.Elements[idx-1]
