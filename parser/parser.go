@@ -121,13 +121,13 @@ func (p *Parser) Errors() []string {
 }
 
 func (p *Parser) peekError(t token.TokenType) {
-	msg := fmt.Sprintf("bruh I needed %s, why did you hit me with %s instead 🤦‍♀️",
+	msg := fmt.Sprintf("bruh I needed a %s, why did you hit me with a %s instead 🤦‍♀️",
 		t, p.peekToken.Type)
 	p.errors = append(p.errors, msg)
 }
 
 func (p *Parser) noPrefixParseFnError(t token.TokenType) {
-	msg := fmt.Sprintf("you can't lead with %s - that's not how you begin things! 🤷‍♀️", t)
+	msg := fmt.Sprintf("you can't lead with a %s - that's not how you begin things! 🤷‍♀️", t)
 	p.errors = append(p.errors, msg)
 }
 
@@ -160,6 +160,11 @@ func (p *Parser) parseStatement() ast.Statement {
 		return p.parseContinueStatement()
 	case token.BREAK:
 		return p.parseBreakStatement()
+	case token.FUNCTION:
+		if p.peekTokenIs(token.IDENT) {
+			return p.parseFunctionStatement()
+		}
+		fallthrough
 	case token.IDENT:
 		if p.peekTokenIs(token.ASSIGN) {
 			return p.parseAssignmentStatement()
@@ -200,6 +205,34 @@ func (p *Parser) parseAssignmentStatement() *ast.AssignmentStatement {
 	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}
+	return stmt
+}
+
+func (p *Parser) parseFunctionStatement() *ast.FunctionStatement {
+	stmt := &ast.FunctionStatement{Token: p.curToken}
+
+	if !p.expectPeek(token.IDENT) {
+		return nil
+	}
+
+	stmt.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+
+	stmt.Parameters = p.parseFunctionParameters()
+
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+
+	stmt.Body = p.parseBlockStatement()
+
+	if p.peekTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+
 	return stmt
 }
 

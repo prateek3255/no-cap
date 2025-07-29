@@ -78,6 +78,57 @@ func TestReturnStatements(t *testing.T) {
 	}
 }
 
+func TestFunctionStatement(t *testing.T) {
+	input := `cook sup(x, y) { x + y; }`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.statements does not contain %d statments. got=%d\n", 1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.FunctionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.FunctionStatement. got=%T",
+			program.Statements[0])
+	}
+
+	if stmt.Name.Value != "sup" {
+		t.Fatalf("stmt.Name.Value not '%s'. got=%s", "sup", stmt.Name.Value)
+	}
+
+	if len(stmt.Parameters) != 2 {
+		t.Fatalf("stmt.Parameters does not contain 2 parameters. got=%d\n",
+			len(stmt.Parameters))
+	}
+
+	if stmt.Parameters[0].Value != "x" {
+		t.Fatalf("stmt.Parameters[0].Value not '%s'. got=%s", "x", stmt.Parameters[0].Value)
+	}
+
+	if stmt.Parameters[1].Value != "y" {
+		t.Fatalf("stmt.Parameters[1].Value not '%s'. got=%s", "y", stmt.Parameters[1].Value)
+	}
+
+	if len(stmt.Body.Statements) != 1 {
+		t.Fatalf("stmt.Body.Statements does not contain 1 statements. got=%d\n",
+			len(stmt.Body.Statements))
+	}
+
+	bodyStmt, ok := stmt.Body.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("stmt.Body.Statements[0] is not ast.ExpressionStatement. got=%T",
+			stmt.Body.Statements[0])
+	}
+
+	if !testInfixExpression(t, bodyStmt.Expression, "x", "+", "y") {
+		return
+	}
+}
+
 func TestForStatement(t *testing.T) {
 	input := `stalk (x in y) { 
 		x;

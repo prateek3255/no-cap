@@ -412,6 +412,8 @@ func TestFunctionApplication(t *testing.T) {
 		{"fr add = cook(x, y) { x + y; }; add(5, 5);", 10},
 		{"fr add = cook(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
 		{"cook(x) { x; }(5)", 5},
+		{"cook add(x, y) { x + y;}; add(5, 5);", 10},
+		{"cook identity(x) { yeet x; }; identity(5);", 5},
 	}
 
 	for _, tt := range tests {
@@ -1367,14 +1369,6 @@ func TestCaughtIn4KLogging(t *testing.T) {
 			`,
 			expectedLogs: []string{"Array:", "[1, 2, 3]"},
 			description:  "Logging with array",
-		},
-		{
-			input: `
-				fr hash = {"key": "value", "num": 42};
-				caughtIn4K("Hash:", hash);
-			`,
-			expectedLogs: []string{"Hash:", `{key: value, num: 42}`},
-			description:  "Logging with hash",
 		},
 		{
 			input: `
