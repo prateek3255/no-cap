@@ -18,6 +18,8 @@ fr add = cook(x, y) {
 fr result = add(five, ten); // Single line comment at end of line
 nah-*/5;
 5 < 10 > 5;
+5 <= 10 >= 5;
+10 % 5;
 
 /* Multiline comment
 That spans across multiple
@@ -89,6 +91,16 @@ x * 5.05
 		{token.LT, "<"},
 		{token.INT, "10"},
 		{token.GT, ">"},
+		{token.INT, "5"},
+		{token.SEMICOLON, ";"},
+		{token.INT, "5"},
+		{token.LTE, "<="},
+		{token.INT, "10"},
+		{token.GTE, ">="},
+		{token.INT, "5"},
+		{token.SEMICOLON, ";"},
+		{token.INT, "10"},
+		{token.MODULO, "%"},
 		{token.INT, "5"},
 		{token.SEMICOLON, ";"},
 		{token.IF, "vibe"},

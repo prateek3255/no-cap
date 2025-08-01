@@ -2,6 +2,7 @@ package evaluator
 
 import (
 	"fmt"
+	"math"
 	"nocap/ast"
 	"nocap/object"
 )
@@ -309,6 +310,15 @@ func evalIntegerInfixExpression(
 		return nativeBoolToBooleanObject(leftVal < rightVal)
 	case ">":
 		return nativeBoolToBooleanObject(leftVal > rightVal)
+	case "<=":
+		return nativeBoolToBooleanObject(leftVal <= rightVal)
+	case ">=":
+		return nativeBoolToBooleanObject(leftVal >= rightVal)
+	case "%":
+		if rightVal == 0 {
+			return newError("my math teacher said no dividing by zero! 😤")
+		}
+		return &object.Integer{Value: leftVal % rightVal}
 	case "is":
 		return nativeBoolToBooleanObject(leftVal == rightVal)
 	case "aint":
@@ -354,6 +364,15 @@ func evalFloatInfixExpression(
 		return nativeBoolToBooleanObject(leftVal < rightVal)
 	case ">":
 		return nativeBoolToBooleanObject(leftVal > rightVal)
+	case "<=":
+		return nativeBoolToBooleanObject(leftVal <= rightVal)
+	case ">=":
+		return nativeBoolToBooleanObject(leftVal >= rightVal)
+	case "%":
+		if rightVal == 0 {
+			return newError("my math teacher said no dividing by zero! 😤")
+		}
+		return &object.Float{Value: math.Mod(leftVal, rightVal)}
 	case "is":
 		return nativeBoolToBooleanObject(leftVal == rightVal)
 	case "aint":

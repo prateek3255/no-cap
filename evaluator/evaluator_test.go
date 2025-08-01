@@ -27,6 +27,8 @@ func TestEvalIntegerExpression(t *testing.T) {
 		{"3 * 3 * 3 + 10", 37},
 		{"3 * (3 * 3) + 10", 37},
 		{"(5 + 10 * 2 + 15 / 3) * 2 + -10", 50},
+		{"1 % 2", 1},
+		{"2 % 3", 2},
 	}
 
 	for _, tt := range tests {
@@ -50,6 +52,8 @@ func TestEvalIntegerAndFloatExpression(t *testing.T) {
 		{"2 * -3.0", -6.0},
 		{"2 * (3.0 + 2)", 10.0},
 		{"(5 + 10.0 * 2 + 15 / 3) * 2 + -10", 50.0},
+		{"1.5 % 2", 1.5},
+		{"2.5 % 3", 2.5},
 	}
 
 	for _, tt := range tests {
@@ -82,6 +86,10 @@ func TestEvalBooleanExpression(t *testing.T) {
 		{"(1 < 2) is cap", false},
 		{"(1 > 2) is noCap", false},
 		{"(1 > 2) is cap", true},
+		{"(2 >= 2) is noCap", true},
+		{"(2 >= 2) is cap", false},
+		{"(2 <= 2) is noCap", true},
+		{"(2 <= 2) is cap", false},
 	}
 
 	for _, tt := range tests {
