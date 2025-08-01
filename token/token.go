@@ -4,7 +4,7 @@ type TokenType string
 
 const (
 	ILLEGAL = "illegal"
-	EOF     = "EOF"
+	EOF     = "end of file"
 
 	// Identifiers + literals
 	IDENT  = "identifier" // add, foobar, x, y, ...
@@ -35,23 +35,23 @@ const (
 	RBRACKET = "]"
 
 	// Keywords
-	EQ       = "EQ"
-	NOT_EQ   = "NOT_EQ"
-	BANG     = "BANG"
-	FUNCTION = "FUNCTION"
-	LET      = "LET"
-	TRUE     = "TRUE"
-	FALSE    = "FALSE"
-	IF       = "IF"
-	ELSE     = "ELSE"
-	ELSE_IF  = "ELSE_IF"
-	RETURN   = "RETURN"
-	FOR      = "FOR"
-	WHILE    = "WHILE"
-	IN       = "IN"
-	CONTINUE = "CONTINUE"
-	BREAK    = "BREAK"
-	NULL     = "NULL"
+	EQ       = "is"
+	NOT_EQ   = "aint"
+	BANG     = "nah"
+	FUNCTION = "function"
+	LET      = "fr"
+	TRUE     = "noCap"
+	FALSE    = "cap"
+	IF       = "vibe"
+	ELSE     = "nvm"
+	ELSE_IF  = "unless"
+	RETURN   = "yeet"
+	FOR      = "stalk"
+	WHILE    = "onRepeat"
+	IN       = "in"
+	CONTINUE = "pass"
+	BREAK    = "bounce"
+	NULL     = "ghosted"
 )
 
 type Token struct {

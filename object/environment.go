@@ -43,7 +43,7 @@ func (e *Environment) Update(name string, val Object) Object {
 		return e.outer.Update(name, val)
 	}
 
-	return &Error{Message: fmt.Sprintf("identifier not found: %q", name)}
+	return &Error{Message: fmt.Sprintf("bruh, you can't just arbitrarily assign to: %q without defining it first 🙄", name)}
 }
 
 func (e *Environment) AddLogs(log string) {

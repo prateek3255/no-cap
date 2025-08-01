@@ -252,7 +252,7 @@ func evalInfixExpression(
 	case operator == "aint":
 		return nativeBoolToBooleanObject(left != right)
 	case left.Type() != right.Type():
-		return newError("what the hell is %s supposed to do between a %s and a %s 😬",
+		return newError("what the hell is %s supposed to do between a %s and a %s 🐘🐧",
 			operator, left.Type(), right.Type())
 	default:
 		return newError("idk how to %s a %s with a %s 😬",
@@ -428,7 +428,7 @@ func evalIdentifier(
 		return builtin
 	}
 
-	return newError("%s? Never heard of them 🤷‍♀️", node.Value)
+	return newError("%s? never heard of them 🤷‍♀️", node.Value)
 }
 
 func isTruthy(obj object.Object) bool {

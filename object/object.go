@@ -70,7 +70,12 @@ type Boolean struct {
 }
 
 func (b *Boolean) Type() ObjectType { return BOOLEAN_OBJ }
-func (b *Boolean) Inspect() string  { return fmt.Sprintf("%t", b.Value) }
+func (b *Boolean) Inspect() string {
+	if b.Value {
+		return "noCap"
+	}
+	return "cap"
+}
 func (b *Boolean) HashKey() HashKey {
 	var value uint64
 
@@ -100,7 +105,7 @@ type Error struct {
 }
 
 func (e *Error) Type() ObjectType { return ERROR_OBJ }
-func (e *Error) Inspect() string  { return "ERROR: " + e.Message }
+func (e *Error) Inspect() string  { return e.Message }
 
 type Function struct {
 	Parameters []*ast.Identifier

@@ -287,11 +287,11 @@ func TestErrorHandling(t *testing.T) {
 	}{
 		{
 			"5 + noCap;",
-			"what the hell is + supposed to do between a integer and a boolean 😬",
+			"what the hell is + supposed to do between a integer and a boolean 🐘🐧",
 		},
 		{
 			"5 + noCap; 5;",
-			"what the hell is + supposed to do between a integer and a boolean 😬",
+			"what the hell is + supposed to do between a integer and a boolean 🐘🐧",
 		},
 		{
 			"-noCap",
@@ -331,7 +331,7 @@ vibe (10 > 1) {
 		},
 		{
 			"foobar",
-			"foobar? Never heard of them 🤷‍♀️",
+			"foobar? never heard of them 🤷‍♀️",
 		},
 		{
 			`{"name": "Monkey"}[cook(x) { x }];`,
@@ -724,7 +724,7 @@ func TestAssigmentError(t *testing.T) {
 		t.Fatalf("Eval didn't return Error. got=%T (%+v)", evaluated, evaluated)
 	}
 
-	expectedMessage := "what the hell is + supposed to do between a builtin function and a integer 😬"
+	expectedMessage := "what the hell is + supposed to do between a builtin function and a integer 🐘🐧"
 	if err.Message != expectedMessage {
 		t.Fatalf("wrong error message. expected=%q, got=%q", expectedMessage, err.Message)
 	}
