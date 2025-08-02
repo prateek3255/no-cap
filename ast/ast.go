@@ -307,6 +307,9 @@ func (pe *PrefixExpression) String() string {
 
 	out.WriteString("(")
 	out.WriteString(pe.Operator)
+	if pe.Operator == "nah" {
+		out.WriteString(" ")
+	}
 	out.WriteString(pe.Right.String())
 	out.WriteString(")")
 

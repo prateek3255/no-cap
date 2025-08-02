@@ -90,6 +90,18 @@ func TestEvalBooleanExpression(t *testing.T) {
 		{"(2 >= 2) is cap", false},
 		{"(2 <= 2) is noCap", true},
 		{"(2 <= 2) is cap", false},
+		{"noCap and noCap", true},
+		{"noCap and cap", false},
+		{"cap and noCap", false},
+		{"cap and cap", false},
+		{"noCap or noCap", true},
+		{"noCap or cap", true},
+		{"cap or noCap", true},
+		{"cap or cap", false},
+		{"5 > 3 and 2 < 4", true},
+		{"5 < 3 and 2 < 4", false},
+		{"5 < 3 or 2 < 4", true},
+		{"5 < 3 or 2 > 4", false},
 	}
 
 	for _, tt := range tests {
@@ -114,6 +126,95 @@ func TestBangOperator(t *testing.T) {
 	for _, tt := range tests {
 		evaluated := testEval(tt.input)
 		testBooleanObject(t, evaluated, tt.expected)
+	}
+}
+
+func TestLogicalAndOrOperators(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected bool
+	}{
+		// AND operator tests
+		{"noCap and noCap", true},
+		{"noCap and cap", false},
+		{"cap and noCap", false},
+		{"cap and cap", false},
+
+		// OR operator tests
+		{"noCap or noCap", true},
+		{"noCap or cap", true},
+		{"cap or noCap", true},
+		{"cap or cap", false},
+
+		// Complex expressions
+		{"noCap and cap or noCap", true}, // (true && false) || true = true
+		{"cap or noCap and cap", false},  // false || (true && false) = false
+		{"5 > 3 and 2 < 4", true},
+		{"5 < 3 and 2 < 4", false},
+		{"5 < 3 or 2 < 4", true},
+		{"5 < 3 or 2 > 4", false},
+		{"nah cap and noCap", true}, // !false && true = true
+		{"nah noCap or cap", false}, // !true || false = false
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testBooleanObject(t, evaluated, tt.expected)
+	}
+}
+
+func TestLogicalOperatorShortCircuit(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected bool
+	}{
+		{`cap and caughtIn4K("hello");`, false},
+		{`cap or 1 is 2 and caughtIn4K("hello");`, false},
+
+		// Cases where left is evaluated
+		{`noCap and caughtIn4K("hello");`, false},
+		{`cap or caughtIn4K("hello") and caughtIn4K("world");`, false},
+
+		// Additional robust test cases
+		{`cap and (5 / 0);`, false}, // Division by zero should not be evaluated
+		{`noCap or (5 / 0);`, true}, // Division by zero should not be evaluated
+
+		// Complex nested short-circuit case with multiple operators
+		{`cap and noCap and caughtIn4K("should not print");`, false},
+	}
+
+	for i, tt := range tests {
+		l := lexer.New(tt.input)
+		p := parser.New(l)
+		program := p.ParseProgram()
+		if len(p.Errors()) != 0 {
+			t.Fatalf("parser errors: %v", p.Errors())
+		}
+
+		env := object.NewEnvironment()
+
+		evaluated := Eval(program, env)
+
+		if isError(evaluated) {
+			t.Fatalf("test %d: expected no error, got %s", i, evaluated.Inspect())
+		}
+
+		testBooleanObject(t, evaluated, tt.expected)
+
+		// Test logs based on expected behavior
+		switch i {
+		case 0, 1, 4, 5, 6: // Cases where function should NOT be called
+			if len(env.Logs) != 0 {
+				t.Fatalf("test %d: expected no logs due to short-circuit, got %v", i, env.Logs)
+			}
+		case 2, 3: // Cases where function SHOULD be called
+			if len(env.Logs) == 0 {
+				t.Fatalf("test %d: expected logs, got none", i)
+			}
+			if len(env.Logs) != 1 || env.Logs[0] != "hello" {
+				t.Fatalf("test %d: unexpected logs: %v", i, env.Logs)
+			}
+		}
 	}
 }
 
@@ -1358,7 +1459,7 @@ func TestCaughtIn4KLogging(t *testing.T) {
 		},
 		{
 			input:        `caughtIn4K(42, noCap, "test");`,
-			expectedLogs: []string{"42", "true", "test"},
+			expectedLogs: []string{"42", "noCap", "test"},
 			description:  "Logging with mixed types (integer, boolean, string)",
 		},
 		{

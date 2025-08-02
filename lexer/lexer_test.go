@@ -32,6 +32,8 @@ vibe (5 < 10) {
 
 10 is 10;
 10 aint 9;
+noCap and cap;
+cap or noCap;
 "foobar"
 "foo bar"
 [1, 2];
@@ -127,6 +129,14 @@ x * 5.05
 		{token.INT, "10"},
 		{token.NOT_EQ, "aint"},
 		{token.INT, "9"},
+		{token.SEMICOLON, ";"},
+		{token.TRUE, "noCap"},
+		{token.AND, "and"},
+		{token.FALSE, "cap"},
+		{token.SEMICOLON, ";"},
+		{token.FALSE, "cap"},
+		{token.OR, "or"},
+		{token.TRUE, "noCap"},
 		{token.SEMICOLON, ";"},
 		{token.STRING, "foobar"},
 		{token.STRING, "foo bar"},

@@ -450,6 +450,8 @@ func TestParsingInfixExpressions(t *testing.T) {
 		{"noCap is noCap", true, "is", true},
 		{"noCap aint cap", true, "aint", false},
 		{"cap is cap", false, "is", false},
+		{"noCap and cap", true, "and", false},
+		{"cap or noCap", false, "or", true},
 	}
 
 	for _, tt := range infixTests {
@@ -486,8 +488,8 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"((-a) * b)",
 		},
 		{
-			"nah-a",
-			"(nah(-a))",
+			"nah -a",
+			"(nah (-a))",
 		},
 		{
 			"a + b + c",
@@ -570,8 +572,8 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"(-(4.15 + 5.15))",
 		},
 		{
-			"nah(noCap is noCap)",
-			"(nah(noCap is noCap))",
+			"nah (noCap is noCap)",
+			"(nah (noCap is noCap))",
 		},
 		{
 			"a + add(b * c) + d",
@@ -592,6 +594,26 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 		{
 			"add(a * b[2], b[1], 2 * [1, 2][1])",
 			"add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))",
+		},
+		{
+			"noCap and cap or noCap",
+			"((noCap and cap) or noCap)",
+		},
+		{
+			"cap or noCap and cap",
+			"(cap or (noCap and cap))",
+		},
+		{
+			"5 > 3 and 2 < 4",
+			"((5 > 3) and (2 < 4))",
+		},
+		{
+			"5 < 3 or 2 > 1 and 3 is 3",
+			"((5 < 3) or ((2 > 1) and (3 is 3)))",
+		},
+		{
+			"nah x and y or z",
+			"(((nah x) and y) or z)",
 		},
 	}
 

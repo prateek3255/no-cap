@@ -20,10 +20,14 @@ const (
 	SLASH    = "/"
 	MODULO   = "%"
 
-	LT  = "<"
-	GT  = ">"
-	LTE = "<="
-	GTE = ">="
+	LT     = "<"
+	GT     = ">"
+	LTE    = "<="
+	GTE    = ">="
+	AND    = "and"
+	OR     = "or"
+	EQ     = "is"
+	NOT_EQ = "aint"
 
 	// Delimiters
 	COMMA     = ","
@@ -38,8 +42,6 @@ const (
 	RBRACKET = "]"
 
 	// Keywords
-	EQ       = "is"
-	NOT_EQ   = "aint"
 	BANG     = "nah"
 	FUNCTION = "function"
 	LET      = "fr"
@@ -80,6 +82,8 @@ var keywords = map[string]TokenType{
 	"aint":     NOT_EQ,
 	"nah":      BANG,
 	"ghosted":  NULL,
+	"and":      AND,
+	"or":       OR,
 }
 
 func LookupIdent(ident string) TokenType {

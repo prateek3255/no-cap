@@ -121,6 +121,10 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return left
 		}
 
+		if node.Operator == "or" || node.Operator == "and" {
+			return evalBooleanInfixExpression(node.Operator, left, node.Right, env)
+		}
+
 		right := Eval(node.Right, env)
 		if isError(right) {
 			return right
@@ -258,6 +262,33 @@ func evalInfixExpression(
 	default:
 		return newError("idk how to %s a %s with a %s 😬",
 			operator, left.Type(), right.Type())
+	}
+}
+
+func evalBooleanInfixExpression(
+	operator string,
+	left object.Object,
+	rightNode ast.Expression,
+	env *object.Environment,
+) object.Object {
+	isLeftTruthy := isTruthy(left)
+
+	// Evaluate the right part only when needed
+	switch operator {
+	case "and":
+		if !isLeftTruthy {
+			return FALSE
+		}
+		right := Eval(rightNode, env)
+		return nativeBoolToBooleanObject(isTruthy(left) && isTruthy(right))
+	case "or":
+		if isLeftTruthy {
+			return TRUE
+		}
+		right := Eval(rightNode, env)
+		return nativeBoolToBooleanObject(isTruthy(left) || isTruthy(right))
+	default:
+		return newError("invalid operation")
 	}
 }
 
