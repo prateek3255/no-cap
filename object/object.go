@@ -57,7 +57,7 @@ type Float struct {
 }
 
 func (f *Float) Type() ObjectType { return FLOAT_OBJ }
-func (f *Float) Inspect() string  { return fmt.Sprintf("%f", f.Value) }
+func (f *Float) Inspect() string  { return fmt.Sprintf("%g", f.Value) }
 func (f *Float) HashKey() HashKey {
 	h := fnv.New64a()
 	h.Write([]byte(fmt.Sprintf("%f", f.Value)))

@@ -252,6 +252,9 @@ func evalInfixExpression(
 		return evalFloatInfixExpression(operator, left, right)
 	case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
 		return evalStringInfixExpression(operator, left, right)
+	case (left.Type() == object.STRING_OBJ && (right.Type() == object.INTEGER_OBJ || right.Type() == object.FLOAT_OBJ)) ||
+		((left.Type() == object.INTEGER_OBJ || left.Type() == object.FLOAT_OBJ) && right.Type() == object.STRING_OBJ):
+		return evalStringAndNumberInfixExpression(operator, left, right)
 	case operator == "is":
 		return nativeBoolToBooleanObject(left == right)
 	case operator == "aint":
@@ -259,6 +262,23 @@ func evalInfixExpression(
 	case left.Type() != right.Type():
 		return newError("what the hell is %s supposed to do between a %s and a %s 🐘🐧",
 			operator, left.Type(), right.Type())
+	default:
+		return newError("idk how to %s a %s with a %s 😬",
+			operator, left.Type(), right.Type())
+	}
+}
+
+func evalStringAndNumberInfixExpression(
+	operator string,
+	left, right object.Object,
+) object.Object {
+	switch operator {
+	case "+":
+		if left.Type() == object.STRING_OBJ {
+			return &object.String{Value: left.(*object.String).Value + right.Inspect()}
+		} else {
+			return &object.String{Value: left.Inspect() + right.(*object.String).Value}
+		}
 	default:
 		return newError("idk how to %s a %s with a %s 😬",
 			operator, left.Type(), right.Type())

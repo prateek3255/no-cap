@@ -595,6 +595,56 @@ func TestStringConcatenation(t *testing.T) {
 	}
 }
 
+func TestStringAndNumberConcatenation(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{`"Hello " + 42`, "Hello 42"},
+		{`5 + " cats"`, "5 cats"},
+		{`"Count: " + 100`, "Count: 100"},
+		{`3.14 + " is pi"`, "3.14 is pi"},
+		{`"Temperature: " + -10`, "Temperature: -10"},
+		{`0 + " degrees"`, "0 degrees"},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		str, ok := evaluated.(*object.String)
+		if !ok {
+			t.Fatalf("object is not String. got=%T (%+v)", evaluated, evaluated)
+		}
+
+		if str.Value != tt.expected {
+			t.Errorf("String has wrong value. expected=%q, got=%q", tt.expected, str.Value)
+		}
+	}
+}
+
+func TestStringAndNumberInfixExpressionErrors(t *testing.T) {
+	tests := []struct {
+		input           string
+		expectedMessage string
+	}{
+		{`"Hello" - 42`, "idk how to - a string with a integer 😬"},
+		{`5 * " cats"`, "idk how to * a integer with a string 😬"},
+		{`"Count" / 100`, "idk how to / a string with a integer 😬"},
+		{`3.14 - " is pi"`, "idk how to - a float with a string 😬"},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		errObj, ok := evaluated.(*object.Error)
+		if !ok {
+			t.Fatalf("expected error object. got=%T (%+v)", evaluated, evaluated)
+		}
+
+		if errObj.Message != tt.expectedMessage {
+			t.Errorf("wrong error message. expected=%q, got=%q", tt.expectedMessage, errObj.Message)
+		}
+	}
+}
+
 func TestBuiltinFunctions(t *testing.T) {
 	tests := []struct {
 		input    string
