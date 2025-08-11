@@ -356,7 +356,8 @@ func evalIntegerInfixExpression(
 		if rightVal == 0 {
 			return newError("my math teacher said no dividing by zero! 😤")
 		}
-		return &object.Integer{Value: leftVal / rightVal}
+		// For / always return a float
+		return &object.Float{Value: float64(leftVal) / float64(rightVal)}
 	case "<":
 		return nativeBoolToBooleanObject(leftVal < rightVal)
 	case ">":
