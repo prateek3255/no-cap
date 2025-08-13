@@ -15,7 +15,7 @@ func main() {
 }
 
 func ExecuteNoCap() js.Func {
-	return js.FuncOf(func(this js.Value, args []js.Value) any {
+	return js.FuncOf(func(this js.Value, args []js.Value) (o any) {
 		output := func(result *string, errors []string, logs []string) string {
 			var resultValue any
 			if result != nil {
@@ -40,7 +40,7 @@ func ExecuteNoCap() js.Func {
 		defer func() {
 			if r := recover(); r != nil {
 				// Return error through output function
-				output(nil, []string{"This is awkward... something went very wrong and it's not your fault 😬!"}, []string{})
+				o = output(nil, []string{"This is awkward... something went very wrong and it's not your fault 😬!"}, []string{})
 			}
 		}()
 
