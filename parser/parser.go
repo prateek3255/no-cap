@@ -195,12 +195,22 @@ func (p *Parser) isIndexExpressionAssignment() bool {
 	}
 
 	lexerCopy := *p.l
-	curToken := p.curToken
+	curToken := p.peekToken
+	peekToken := lexerCopy.NextToken()
+	bracketDepth := -1
 
-	for curToken.Type != token.ASSIGN && curToken.Type != token.EOF {
-		curToken = lexerCopy.NextToken()
+	for (bracketDepth != 0 && curToken.Type != token.EOF) || (peekToken.Type == token.LBRACKET || peekToken.Type == token.RBRACKET) {
+		curToken = peekToken
+		peekToken = lexerCopy.NextToken()
+		switch curToken.Type {
+		case token.LBRACKET:
+			bracketDepth -= 1
+		case token.RBRACKET:
+			bracketDepth += 1
+		}
 	}
 
+	curToken = peekToken
 	return curToken.Type == token.ASSIGN
 }
 
